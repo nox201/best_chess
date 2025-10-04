@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<head>
+	<style>
+	#board {
+		border: 1px solid black;
+	}
+	#boardContainer {
+		height: 0px;
+		width: 50%;
+		padding-bottom: 50%;
+		<!-- background-color: red; -->
+	}
+	</style>
+</head>
+<body>
+
+<div id="boardContainer">
+	<canvas id="board" width="100%" height="100%">
+</div>
+
+</body>
+
+<script>
+
+	//INITALIZE VARIABLES
+	var boardContainer = document.getElementById('boardContainer');
+	var canvas = document.getElementById('board');
+	var plane = canvas.getContext('2d');
+	
+	//ON LOAD
+	window.addEventListener('load', (event) => {
+	
+		//SET CANVAS SIZE TO PARENT DIV - ALLOWS DYNAMIC RESIZING OF THE CANVAS, WHILE FORCING IT TO BE SQUARE
+		canvas.width = parseInt(getComputedStyle(boardContainer).getPropertyValue('width'), 10);
+		canvas.height = canvas.width;
+		//SET SQUARE DIMENSIONS
+		var squareSize = Math.floor(canvas.width / 8);
+
+		
+		//SQUARE CLASS
+		//Represents one of the 64 coloured squares on the chessboard
+		class Square {
+			constructor(plane, row, column, colour, contains){
+				this.plane = plane;
+				this.row = row;
+				this.column = column;
+				this.colour = colour;
+				this.contains = contains;
+			};
+			plane;
+			row;
+			column;
+			colour;
+			contains;
+			
+			draw = function(){
+				plane.fillStyle = this.colour;
+				plane.fillRect(squareSize * this.row, squareSize * this.column, squareSize, squareSize);
+				plane.fill();
+			}
+		}
+
+		//POPULATE BOARD WITH 8X8 SQUARES
+		var squares = [];
+		var squareColour = 'grey';
+		for(i = 0; i < 8; i++){
+			squares[i] = [];
+			for(j = 0; j < 8; j++){
+				//DONT ALTERNATE COLOUR ON THE FIRST SQUARE OF EACH ROW
+				if(j != 0){
+					if(squareColour == 'white'){
+						squareColour = 'grey';
+					}else{
+						squareColour = 'white';
+					}
+				}
+				//CREATE SQUARE
+				squares[i].push(new Square(plane, j, i, squareColour, null));
+			}
+		}
+		
+
+		//DRAW SQUARES
+		squares.forEach((row) => {
+			row.forEach((column) => {
+				column.draw();
+			})
+		});
+	
+	//close onload function
+	}
+);
+
+</script>
