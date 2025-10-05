@@ -6,8 +6,8 @@
 	}
 	#boardContainer {
 		height: 0px;
-		width: 50%;
-		padding-bottom: 50%;
+		width: 40%;
+		padding-bottom: 40%;
 		<!-- background-color: red; -->
 	}
 	</style>
@@ -35,6 +35,19 @@
 		canvas.height = canvas.width;
 		//SET SQUARE DIMENSIONS
 		var squareSize = Math.floor(canvas.width / 8);
+		
+		//BIND HIGHEST LEVEL EVENT LISTENER
+		canvas.addEventListener('click', handleCanvasClicked);
+		
+		function handleCanvasClicked(event)
+		{
+			//DETERMINE WHICH SQUARE HAS BEEN CLICKED
+			//console.log('handleCanvasClicked called');
+			let row = Math.floor(event.offsetX / squareSize);
+			let column = Math.floor(event.offsetY / squareSize);
+			//PASS EVENT TO OBJECT
+			squares[row][column].handleClick(event);
+		}
 
 		
 		//SQUARE CLASS
@@ -57,6 +70,15 @@
 				plane.fillStyle = this.colour;
 				plane.fillRect(squareSize * this.row, squareSize * this.column, squareSize, squareSize);
 				plane.fill();
+			};
+			
+			handleClick(event){
+				//LOG
+				console.log('square ' + this.row + ', ' + this.column + ' clicked');
+				//for testing - replace this with some 'selected' variable, that can then drive more logic
+				this.colour = 'red';
+				//REDRAW BOARD
+				drawBoard();
 			}
 		}
 
@@ -75,20 +97,30 @@
 					}
 				}
 				//CREATE SQUARE
-				squares[i].push(new Square(plane, j, i, squareColour, null));
+				squares[i].push(new Square(plane, i, j, squareColour, null));
 			}
 		}
 		
+		
+		
+		function drawBoard()
+		{
+			//ITERATE SQUARES
+			squares.forEach((row) => {
+				row.forEach((column) => {
+					//DRAW SQUARE
+					column.draw();
+				})
+			});
+		}
 
-		//DRAW SQUARES
-		squares.forEach((row) => {
-			row.forEach((column) => {
-				column.draw();
-			})
-		});
+		//draw board first time for testing
+		drawBoard();
+
 	
 	//close onload function
 	}
 );
+
 
 </script>
