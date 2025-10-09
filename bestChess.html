@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <head>
+	<script src="Piece.js"></script>
+	<script src="Pawn.js"></script>
 	<style>
 	#board {
 		border: 1px solid black;
@@ -26,6 +28,8 @@
 	var boardContainer = document.getElementById('boardContainer');
 	var canvas = document.getElementById('board');
 	var plane = canvas.getContext('2d');
+	var selectedRow;
+	var selectedColumn;
 	
 	//ON LOAD
 	window.addEventListener('load', (event) => {
@@ -59,28 +63,163 @@
 				this.column = column;
 				this.colour = colour;
 				this.contains = contains;
+				//utility variables
+				this.centreX = squareSize * this.row + (squareSize / 2);
+				this.centreY = squareSize * this.column + (squareSize / 2);
 			};
 			plane;
 			row;
 			column;
 			colour;
 			contains;
+			centreX;
+			centreY;
+			selected = false;
+			highlighted = false;
+			
+			addPiece = function(piece){
+				this.contains = piece;
+			}
 			
 			draw = function(){
-				plane.fillStyle = this.colour;
-				plane.fillRect(squareSize * this.row, squareSize * this.column, squareSize, squareSize);
-				plane.fill();
+			
+				//CHECK IF PIECE SELECTED
+				if(this.selected){
+					plane.fillStyle = 'green';
+					plane.fillRect(squareSize * this.row, squareSize * this.column, squareSize, squareSize);
+				}else if(this.highlighted){
+					plane.fillStyle = 'lightgreen';
+					plane.fillRect(squareSize * this.row, squareSize * this.column, squareSize, squareSize);
+				}else{
+					plane.fillStyle = this.colour;
+					plane.fillRect(squareSize * this.row, squareSize * this.column, squareSize, squareSize);
+				}
+				
+				if(this.contains != null){
+					//DRAW PIECE
+					switch(this.contains.type){
+						case 'pawn':
+							console.log('drawing pawn');
+							//console.log('centreX: ' + this.centreX + ', centreY: ' + this.centreY, 'diameter: ' + squareSize / 2);
+							<!-- plane.lineWidth = 3; -->
+							<!-- plane.beginPath(); -->
+							<!-- plane.arc(this.centreX, this.centreY, (squareSize / 4), 0, Math.PI * 2); -->
+							<!-- plane.strokeStyle = 'black'; -->
+							<!-- plane.stroke(); -->
+							<!-- plane.fillStyle = this.contains.colour; -->
+							<!-- plane.fill(); -->
+							this.contains.draw();
+						break;
+						case 'castle':
+							plane.strokeStyle = 'black';
+							plane.strokeRect(squareSize * this.row + (squareSize / 4), squareSize * this.column + (squareSize / 4), squareSize / 2, squareSize / 2);
+							plane.fillStyle = this.contains.colour;
+							plane.fillRect(squareSize * this.row + (squareSize / 4), squareSize * this.column + (squareSize / 4), squareSize / 2, squareSize / 2);
+						break;
+						case 'knight':
+							plane.strokeStyle = 'black';
+							plane.strokeRect(squareSize * this.row + (squareSize / 2.5), squareSize * this.column + (squareSize / 4), squareSize / 4, squareSize / 2);
+							plane.fillStyle = this.contains.colour;
+							plane.fillRect(squareSize * this.row + (squareSize / 2.5), squareSize * this.column + (squareSize / 4), squareSize / 4, squareSize / 2);
+						break;
+						case 'bishop':
+							plane.beginPath();
+							plane.moveTo(squareSize * this.row + squareSize * 0.50, squareSize * this.column + squareSize * 0.33);
+							plane.lineTo(squareSize * this.row + squareSize * 0.75, squareSize * this.column + squareSize * 0.75);
+							plane.lineTo(squareSize * this.row + squareSize * 0.25, squareSize * this.column + squareSize * 0.75);
+							plane.lineTo(squareSize * this.row + squareSize * 0.50, squareSize * this.column + squareSize * 0.33);
+							plane.strokeStyle = 'black';
+							plane.stroke();
+							plane.fillStyle = this.contains.colour;
+							plane.fill();
+						break;
+						case 'queen':
+							plane.beginPath();
+							plane.moveTo(squareSize * this.row + squareSize * 0.75, squareSize * this.column + squareSize * 0.10);
+							plane.lineTo(squareSize * this.row + squareSize * 0.75, squareSize * this.column + squareSize * 0.75);
+							plane.lineTo(squareSize * this.row + squareSize * 0.25, squareSize * this.column + squareSize * 0.75);
+							plane.lineTo(squareSize * this.row + squareSize * 0.50, squareSize * this.column + squareSize * 0.90);
+							plane.strokeStyle = 'black';
+							plane.stroke();
+							plane.fillStyle = this.contains.colour;
+							plane.fill();
+						break;
+						case 'king':
+							plane.beginPath();
+							plane.moveTo(squareSize * this.row + squareSize * 0.66, squareSize * this.column + squareSize * 0.15);
+							plane.lineTo(squareSize * this.row + squareSize * 0.75, squareSize * this.column + squareSize * 0.75);
+							plane.lineTo(squareSize * this.row + squareSize * 0.25, squareSize * this.column + squareSize * 0.75);
+							plane.lineTo(squareSize * this.row + squareSize * 0.33, squareSize * this.column + squareSize * 0.15);
+							plane.strokeStyle = 'black';
+							plane.stroke();
+							plane.fillStyle = this.contains.colour;
+							plane.fill();
+						break;
+					}
+				
+				}
 			};
 			
 			handleClick(event){
 				//LOG
 				console.log('square ' + this.row + ', ' + this.column + ' clicked');
-				//for testing - replace this with some 'selected' variable, that can then drive more logic
-				this.colour = 'red';
+				//logic here to work out if something is already selected, and either de-select or take action as neccessary
+				
+				if(this.highlighted == true){
+					//MOVE PIECE
+					this.contains = squares[selectedRow][selectedColumn].contains;
+					//REMOVE PIECE FROM OLD SQUARE
+					squares[selectedRow][selectedColumn].contains = null;
+					//DESELECT EVERYTHING
+					deselectEverything();
+				}else if(this.contains != null){
+					//SET SELECTED
+					this.selected = true;
+					//SET UTILITY VARIABLE
+					selectedRow = this.row;
+					selectedColumn = this.column;
+					//SET PIECES VALID MOVES TO HIGHLIGHTED
+					switch(this.contains.type){
+						case 'pawn':
+							squares[this.row][this.column - 1].highlighted = true;
+						break;
+					
+					}
+				}else{
+					deselectEverything();
+				}
+				
 				//REDRAW BOARD
 				drawBoard();
 			}
 		}
+		
+		//=================
+		//UTILITY FUNCTIONS
+		//=================
+		
+		function deselectEverything()
+		{
+			//ITERATE SQUARES
+			squares.forEach((row) => {
+				row.forEach((column) => {
+					column.selected = false;
+					column.highlighted = false;
+				})
+			});
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		//=================
+		//BOARD FUNCTIONS
+		//=================
 
 		//POPULATE BOARD WITH 8X8 SQUARES
 		var squares = [];
@@ -101,7 +240,35 @@
 			}
 		}
 		
-		
+		function populateBoard()
+		{
+			//ADD PAWNS
+			for(i = 0; i < 8; i++){
+				//squares[i][1].addPiece(new Piece(plane, 'pawn', 'black'));
+				//squares[i][6].addPiece(new Piece(plane, 'pawn', 'white'));
+				squares[i][1].addPiece(new Pawn(plane, 'pawn', 'black'));
+				squares[i][6].addPiece(new Pawn(plane, 'pawn', 'white'));
+			}
+			//ADD WHITE
+			squares[0][7].addPiece(new Piece(plane, 'castle', 'white'));
+			squares[1][7].addPiece(new Piece(plane, 'knight', 'white'));
+			squares[2][7].addPiece(new Piece(plane, 'bishop', 'white'));
+			squares[3][7].addPiece(new Piece(plane, 'king', 'white'));
+			squares[4][7].addPiece(new Piece(plane, 'queen', 'white'));
+			squares[5][7].addPiece(new Piece(plane, 'bishop', 'white'));
+			squares[6][7].addPiece(new Piece(plane, 'knight', 'white'));
+			squares[7][7].addPiece(new Piece(plane, 'castle', 'white'));
+			//ADD BLACK
+			squares[0][0].addPiece(new Piece(plane, 'castle', 'black'));
+			squares[1][0].addPiece(new Piece(plane, 'knight', 'black'));
+			squares[2][0].addPiece(new Piece(plane, 'bishop', 'black'));
+			squares[3][0].addPiece(new Piece(plane, 'queen', 'black'));
+			squares[4][0].addPiece(new Piece(plane, 'king', 'black'));
+			squares[5][0].addPiece(new Piece(plane, 'bishop', 'black'));
+			squares[6][0].addPiece(new Piece(plane, 'knight', 'black'));
+			squares[7][0].addPiece(new Piece(plane, 'castle', 'black'));
+			
+		}
 		
 		function drawBoard()
 		{
@@ -110,11 +277,13 @@
 				row.forEach((column) => {
 					//DRAW SQUARE
 					column.draw();
+					console.log(column.contains);
 				})
 			});
 		}
 
 		//draw board first time for testing
+		populateBoard();
 		drawBoard();
 
 	
