@@ -2,6 +2,12 @@
 <head>
 	<script src="Piece.js"></script>
 	<script src="Pawn.js"></script>
+	<script src="Castle.js"></script>
+	<script src="Knight.js"></script>
+	<script src="Bishop.js"></script>
+	<script src="Queen.js"></script>
+	<script src="King.js"></script>
+	
 	<style>
 	#board {
 		border: 1px solid black;
@@ -43,6 +49,7 @@
 		//BIND HIGHEST LEVEL EVENT LISTENER
 		canvas.addEventListener('click', handleCanvasClicked);
 		
+		//HANDLE CLICK
 		function handleCanvasClicked(event)
 		{
 			//DETERMINE WHICH SQUARE HAS BEEN CLICKED
@@ -53,7 +60,6 @@
 			squares[row][column].handleClick(event);
 		}
 
-		
 		//SQUARE CLASS
 		//Represents one of the 64 coloured squares on the chessboard
 		class Square {
@@ -77,10 +83,21 @@
 			selected = false;
 			highlighted = false;
 			
+			//ADDS A PIECE TO THE SQUARE
 			addPiece = function(piece){
 				this.contains = piece;
 			}
+			getPiece = function(){
+				if(this.contains != null){
+					this.contains.setRow(this.row);
+					this.contains.setColumn(this.column);
+					return this.contains;
+				}else{
+					return null;
+				}
+			}
 			
+			//DRAWS THE SQUARE, INCLUDING ANY PIECE IN THE SQUARE
 			draw = function(){
 			
 				//CHECK IF PIECE SELECTED
@@ -95,71 +112,13 @@
 					plane.fillRect(squareSize * this.row, squareSize * this.column, squareSize, squareSize);
 				}
 				
-				if(this.contains != null){
+				if(this.getPiece() != null){
 					//DRAW PIECE
-					switch(this.contains.type){
-						case 'pawn':
-							console.log('drawing pawn');
-							//console.log('centreX: ' + this.centreX + ', centreY: ' + this.centreY, 'diameter: ' + squareSize / 2);
-							<!-- plane.lineWidth = 3; -->
-							<!-- plane.beginPath(); -->
-							<!-- plane.arc(this.centreX, this.centreY, (squareSize / 4), 0, Math.PI * 2); -->
-							<!-- plane.strokeStyle = 'black'; -->
-							<!-- plane.stroke(); -->
-							<!-- plane.fillStyle = this.contains.colour; -->
-							<!-- plane.fill(); -->
-							this.contains.draw();
-						break;
-						case 'castle':
-							plane.strokeStyle = 'black';
-							plane.strokeRect(squareSize * this.row + (squareSize / 4), squareSize * this.column + (squareSize / 4), squareSize / 2, squareSize / 2);
-							plane.fillStyle = this.contains.colour;
-							plane.fillRect(squareSize * this.row + (squareSize / 4), squareSize * this.column + (squareSize / 4), squareSize / 2, squareSize / 2);
-						break;
-						case 'knight':
-							plane.strokeStyle = 'black';
-							plane.strokeRect(squareSize * this.row + (squareSize / 2.5), squareSize * this.column + (squareSize / 4), squareSize / 4, squareSize / 2);
-							plane.fillStyle = this.contains.colour;
-							plane.fillRect(squareSize * this.row + (squareSize / 2.5), squareSize * this.column + (squareSize / 4), squareSize / 4, squareSize / 2);
-						break;
-						case 'bishop':
-							plane.beginPath();
-							plane.moveTo(squareSize * this.row + squareSize * 0.50, squareSize * this.column + squareSize * 0.33);
-							plane.lineTo(squareSize * this.row + squareSize * 0.75, squareSize * this.column + squareSize * 0.75);
-							plane.lineTo(squareSize * this.row + squareSize * 0.25, squareSize * this.column + squareSize * 0.75);
-							plane.lineTo(squareSize * this.row + squareSize * 0.50, squareSize * this.column + squareSize * 0.33);
-							plane.strokeStyle = 'black';
-							plane.stroke();
-							plane.fillStyle = this.contains.colour;
-							plane.fill();
-						break;
-						case 'queen':
-							plane.beginPath();
-							plane.moveTo(squareSize * this.row + squareSize * 0.75, squareSize * this.column + squareSize * 0.10);
-							plane.lineTo(squareSize * this.row + squareSize * 0.75, squareSize * this.column + squareSize * 0.75);
-							plane.lineTo(squareSize * this.row + squareSize * 0.25, squareSize * this.column + squareSize * 0.75);
-							plane.lineTo(squareSize * this.row + squareSize * 0.50, squareSize * this.column + squareSize * 0.90);
-							plane.strokeStyle = 'black';
-							plane.stroke();
-							plane.fillStyle = this.contains.colour;
-							plane.fill();
-						break;
-						case 'king':
-							plane.beginPath();
-							plane.moveTo(squareSize * this.row + squareSize * 0.66, squareSize * this.column + squareSize * 0.15);
-							plane.lineTo(squareSize * this.row + squareSize * 0.75, squareSize * this.column + squareSize * 0.75);
-							plane.lineTo(squareSize * this.row + squareSize * 0.25, squareSize * this.column + squareSize * 0.75);
-							plane.lineTo(squareSize * this.row + squareSize * 0.33, squareSize * this.column + squareSize * 0.15);
-							plane.strokeStyle = 'black';
-							plane.stroke();
-							plane.fillStyle = this.contains.colour;
-							plane.fill();
-						break;
-					}
-				
+					this.getPiece().draw(this.row, this.column, squareSize);
 				}
 			};
 			
+			//SQUARE-SPECIFIC CLICK HANDLER
 			handleClick(event){
 				//LOG
 				console.log('square ' + this.row + ', ' + this.column + ' clicked');
@@ -167,23 +126,24 @@
 				
 				if(this.highlighted == true){
 					//MOVE PIECE
-					this.contains = squares[selectedRow][selectedColumn].contains;
+					this.addPiece(squares[selectedRow][selectedColumn].getPiece());
 					//REMOVE PIECE FROM OLD SQUARE
 					squares[selectedRow][selectedColumn].contains = null;
 					//DESELECT EVERYTHING
 					deselectEverything();
-				}else if(this.contains != null){
+				}else if(this.getPiece() != null){
 					//SET SELECTED
 					this.selected = true;
 					//SET UTILITY VARIABLE
+					//do i need these?
 					selectedRow = this.row;
 					selectedColumn = this.column;
-					//SET PIECES VALID MOVES TO HIGHLIGHTED
-					switch(this.contains.type){
-						case 'pawn':
-							squares[this.row][this.column - 1].highlighted = true;
-						break;
 					
+					//SET PIECES VALID MOVES TO HIGHLIGHTED
+					let validMoves = this.getPiece().getValidMoves();
+					console.log(validMoves);
+					for(i = 0; i < validMoves.length; i++){
+						squares[validMoves[i].row][validMoves[i].column].highlighted = true;
 					}
 				}else{
 					deselectEverything();
@@ -244,29 +204,27 @@
 		{
 			//ADD PAWNS
 			for(i = 0; i < 8; i++){
-				//squares[i][1].addPiece(new Piece(plane, 'pawn', 'black'));
-				//squares[i][6].addPiece(new Piece(plane, 'pawn', 'white'));
-				squares[i][1].addPiece(new Pawn(plane, 'pawn', 'black'));
-				squares[i][6].addPiece(new Pawn(plane, 'pawn', 'white'));
+				squares[i][1].addPiece(new Pawn(plane, 'black'));
+				squares[i][6].addPiece(new Pawn(plane, 'white'));
 			}
 			//ADD WHITE
-			squares[0][7].addPiece(new Piece(plane, 'castle', 'white'));
-			squares[1][7].addPiece(new Piece(plane, 'knight', 'white'));
-			squares[2][7].addPiece(new Piece(plane, 'bishop', 'white'));
-			squares[3][7].addPiece(new Piece(plane, 'king', 'white'));
-			squares[4][7].addPiece(new Piece(plane, 'queen', 'white'));
-			squares[5][7].addPiece(new Piece(plane, 'bishop', 'white'));
-			squares[6][7].addPiece(new Piece(plane, 'knight', 'white'));
-			squares[7][7].addPiece(new Piece(plane, 'castle', 'white'));
+			squares[0][7].addPiece(new Castle(plane, 'white'));
+			squares[1][7].addPiece(new Knight(plane, 'white'));
+			squares[2][7].addPiece(new Bishop(plane, 'white'));
+			squares[3][7].addPiece(new King(plane, 'white'));
+			squares[4][7].addPiece(new Queen(plane, 'white'));
+			squares[5][7].addPiece(new Bishop(plane, 'white'));
+			squares[6][7].addPiece(new Knight(plane, 'white'));
+			squares[7][7].addPiece(new Castle(plane, 'white'));
 			//ADD BLACK
-			squares[0][0].addPiece(new Piece(plane, 'castle', 'black'));
-			squares[1][0].addPiece(new Piece(plane, 'knight', 'black'));
-			squares[2][0].addPiece(new Piece(plane, 'bishop', 'black'));
-			squares[3][0].addPiece(new Piece(plane, 'queen', 'black'));
-			squares[4][0].addPiece(new Piece(plane, 'king', 'black'));
-			squares[5][0].addPiece(new Piece(plane, 'bishop', 'black'));
-			squares[6][0].addPiece(new Piece(plane, 'knight', 'black'));
-			squares[7][0].addPiece(new Piece(plane, 'castle', 'black'));
+			squares[0][0].addPiece(new Castle(plane, 'black'));
+			squares[1][0].addPiece(new Knight(plane, 'black'));
+			squares[2][0].addPiece(new Bishop(plane, 'black'));
+			squares[3][0].addPiece(new Queen(plane, 'black'));
+			squares[4][0].addPiece(new King(plane, 'black'));
+			squares[5][0].addPiece(new Bishop(plane, 'black'));
+			squares[6][0].addPiece(new Knight(plane, 'black'));
+			squares[7][0].addPiece(new Castle(plane, 'black'));
 			
 		}
 		
@@ -277,7 +235,6 @@
 				row.forEach((column) => {
 					//DRAW SQUARE
 					column.draw();
-					console.log(column.contains);
 				})
 			});
 		}

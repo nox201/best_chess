@@ -1,16 +1,27 @@
 class Piece {
-	constructor(plane, type, colour){
+	constructor(plane, colour){
 		this.plane = plane;
-		this.type = type;
 		this.colour = colour;
 	}
 	plane;
-	type;
 	colour;
+	row;
+	column;
 	moveset;
 	
-	//stub?
-	draw = function(){
-		console.log('Parent Piece draw method called');
+	setRow = function(row){
+		this.row = row;
 	}
+	setColumn = function(column){
+		this.column = column;
+	}
+	
+	//stub?
+	draw = function(row, column, squareSize){
+
+	}
+	
+	getValidMoves = function(){
+		return [];
+	};
 }

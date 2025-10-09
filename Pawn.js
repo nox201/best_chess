@@ -1,22 +1,30 @@
 class Pawn extends Piece {
-	constructor(plane, type, colour){
-		super(plane, type, colour);
+	constructor(plane, colour){
+		super(plane, colour);
 	}
-	plane;
-	type;
-	colour;
-	moveset;
 	
-	draw = function(){
-		
-		console.log('pawn class draw method called');
-		
+	draw = function(row, column, squareSize){
+		//SET UTILITY VARIABLES
+		let centreX = squareSize * row + (squareSize / 2);
+		let centreY = squareSize * column + (squareSize / 2);
+		//DRAW CIRCLE
 		this.plane.lineWidth = 3;
 		this.plane.beginPath();
-		this.plane.arc(this.centreX, this.centreY, (squareSize / 4), 0, Math.PI * 2);
+		this.plane.arc(centreX, centreY, (squareSize / 4), 0, Math.PI * 2);
 		this.plane.strokeStyle = 'black';
 		this.plane.stroke();
-		this.plane.fillStyle = this.contains.colour;
+		this.plane.fillStyle = this.colour;
 		this.plane.fill();
+	}
+	
+	getValidMoves = function(){
+		switch(this.colour){
+			case 'white':
+				return [{'row': this.row, 'column': this.column - 1}];
+			break;
+			case 'black':
+				return [{'row': this.row, 'column': this.column + 1}];
+			break;
+		}
 	}
 }
