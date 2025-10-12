@@ -17,14 +17,37 @@ class Pawn extends Piece {
 		this.plane.fill();
 	}
 	
-	getValidMoves = function(){
+	getValidMoves = function(boardState){
+		let validMoves = [];
+
 		switch(this.colour){
 			case 'white':
-				return [{'row': this.row, 'column': this.column - 1}];
+				//CAN MOVE DIRECTLY FORWARD
+				if(this.isOccupied(boardState, this.row, this.column - 1, this.colour) == 'none'){
+					validMoves.push({'row': this.row, 'column': this.column - 1});
+				}
+				//CAN TAKE FORWARD AND TO EITHER SIDE
+				if(this.isOccupied(boardState, this.row - 1, this.column - 1, this.colour) == 'opponent'){
+					validMoves.push({'row': this.row - 1, 'column': this.column - 1});
+				}
+				if(this.isOccupied(boardState, this.row + 1, this.column - 1, this.colour) == 'opponent'){
+					validMoves.push({'row': this.row + 1, 'column': this.column - 1});
+				}
 			break;
 			case 'black':
-				return [{'row': this.row, 'column': this.column + 1}];
+				//CAN MOVE DIRECTLY FORWARD
+				if(this.isOccupied(boardState, this.row, this.column + 1, this.colour) == 'none'){
+					validMoves.push({'row': this.row, 'column': this.column + 1});
+				}
+				//CAN TAKE FORWARD AND TO EITHER SIDE
+				if(this.isOccupied(boardState, this.row - 1, this.column + 1, this.colour) == 'opponent'){
+					validMoves.push({'row': this.row - 1, 'column': this.column + 1});
+				}
+				if(this.isOccupied(boardState, this.row + 1, this.column + 1, this.colour) == 'opponent'){
+					validMoves.push({'row': this.row + 1, 'column': this.column + 1});
+				}
 			break;
 		}
+		return validMoves;
 	}
 }

@@ -21,7 +21,23 @@ class Piece {
 
 	}
 	
-	getValidMoves = function(){
+	getValidMoves = function(boardState){
 		return [];
 	};
+	
+	//should this function live elsewhere?
+	isOccupied(boardState, row, column, colour){
+		let occupied = 'none';
+		//console.log(boardState);
+		for(let i = 0; i < boardState.length; i++){
+			if(boardState[i].row == row && boardState[i].column == column){
+				if(boardState[i].colour == colour){
+					occupied = 'player';
+				}else{
+					occupied = 'opponent';
+				}
+			}
+		}
+		return occupied;
+	}
 }

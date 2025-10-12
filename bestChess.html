@@ -132,6 +132,8 @@
 					//DESELECT EVERYTHING
 					deselectEverything();
 				}else if(this.getPiece() != null){
+					//DIFFERNENT PIECE SELECTED, DESELECT EVERYTHING
+					deselectEverything();
 					//SET SELECTED
 					this.selected = true;
 					//SET UTILITY VARIABLE
@@ -140,8 +142,8 @@
 					selectedColumn = this.column;
 					
 					//SET PIECES VALID MOVES TO HIGHLIGHTED
-					let validMoves = this.getPiece().getValidMoves();
-					console.log(validMoves);
+					let validMoves = this.getPiece().getValidMoves(getBoardState());
+					console.log('validmoves: ' + validMoves);
 					for(i = 0; i < validMoves.length; i++){
 						squares[validMoves[i].row][validMoves[i].column].highlighted = true;
 					}
@@ -169,7 +171,20 @@
 			});
 		}
 		
-		
+		function getBoardState()
+		{
+			let state = [];
+			//ITERATE SQUARES
+			squares.forEach((row) => {
+				row.forEach((column) => {
+					if(column.getPiece() != null){
+						let currentPiece = column.getPiece();
+						state.push({'row': currentPiece.row, 'column': currentPiece.column, 'colour': currentPiece.colour});
+					}
+				})
+			});
+			return state;
+		}
 		
 		
 		
