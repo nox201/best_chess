@@ -25,6 +25,11 @@
 <div id="boardContainer">
 	<canvas id="board" width="100%" height="100%">
 </div>
+<div id="dataContainer">
+	<span id="whiteTakenPool">White has taken: </span>
+	<br/>
+	<span id="blackTakenPool">Black has taken: </span>
+</div>
 
 </body>
 
@@ -125,6 +130,10 @@
 				//logic here to work out if something is already selected, and either de-select or take action as neccessary
 				
 				if(this.highlighted == true){
+					//CHECK FOR OPPONENTS PIECE
+					if(this.getPiece() != null){
+						updateTakenPool(this.getPiece());
+					}
 					//MOVE PIECE
 					this.addPiece(squares[selectedRow][selectedColumn].getPiece());
 					//REMOVE PIECE FROM OLD SQUARE
@@ -143,7 +152,6 @@
 					
 					//SET PIECES VALID MOVES TO HIGHLIGHTED
 					let validMoves = this.getPiece().getValidMoves(getBoardState());
-					console.log('validmoves: ' + validMoves);
 					for(i = 0; i < validMoves.length; i++){
 						squares[validMoves[i].row][validMoves[i].column].highlighted = true;
 					}
@@ -186,7 +194,14 @@
 			return state;
 		}
 		
-		
+		function updateTakenPool(piece)
+		{
+			if(piece.colour == 'black'){
+				document.getElementById('whiteTakenPool').innerHTML = document.getElementById('whiteTakenPool').innerHTML + piece.getName() + ', ';
+			}else{
+				document.getElementById('blackTakenPool').innerHTML = document.getElementById('blackTakenPool').innerHTML + piece.getName() + ', ';
+			}
+		}
 		
 		
 		

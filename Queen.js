@@ -3,6 +3,8 @@ class Queen extends Piece {
 		super(plane, colour);
 	}
 	
+	name = 'Queen';
+	
 	draw = function(row, column, squareSize){
 		//SET UTILITY VARIABLES
 		let centreX = squareSize * row + (squareSize / 2);

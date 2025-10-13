@@ -8,12 +8,17 @@ class Piece {
 	row;
 	column;
 	moveset;
+	name = 'Generic Piece';
 	
 	setRow = function(row){
 		this.row = row;
 	}
 	setColumn = function(column){
 		this.column = column;
+	}
+	
+	getName = function(){
+		return this.name;
 	}
 	
 	//stub?

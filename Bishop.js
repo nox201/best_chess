@@ -3,6 +3,8 @@ class Bishop extends Piece {
 		super(plane, colour);
 	}
 	
+	name = 'Bishop';
+	
 	draw = function(row, column, squareSize){
 		//SET UTILITY VARIABLES
 		let centreX = squareSize * row + (squareSize / 2);
