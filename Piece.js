@@ -21,7 +21,12 @@ class Piece {
 		return this.name;
 	}
 	
-	//stub?
+	//GENERIC LOGGING FUNCTION
+	log = function(){
+		console.log(this.colour + ' ' + this.name + ' at Row: ' + this.row + ', Column: ' + this.column);
+	}
+	
+	
 	draw = function(row, column, squareSize){
 
 	}

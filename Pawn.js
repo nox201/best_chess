@@ -20,6 +20,7 @@ class Pawn extends Piece {
 	}
 	
 	getValidMoves = function(boardState){
+		
 		let validMoves = [];
 
 		switch(this.colour){

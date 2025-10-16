@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <head>
+
+	<title>Bishops Castle</title>
 	<script src="Piece.js"></script>
 	<script src="Pawn.js"></script>
 	<script src="Castle.js"></script>
@@ -9,6 +11,22 @@
 	<script src="King.js"></script>
 	
 	<style>
+	.background {
+		--s: 61px; /* control the size*/
+		--c1: #b2b2b2;
+		--c2: #ffffff;
+		--c3: #d9d9d9;
+	  
+		--_g: var(--c3) 0 120deg,#0000 0;
+		background:
+			conic-gradient(from -60deg at 50% calc(100%/3),var(--_g)),
+			conic-gradient(from 120deg at 50% calc(200%/3),var(--_g)),
+			conic-gradient(from  60deg at calc(200%/3),var(--c3) 60deg,var(--c2) 0 120deg,#0000 0),
+			conic-gradient(from 180deg at calc(100%/3),var(--c1) 60deg,var(--_g)),
+			linear-gradient(90deg,var(--c1) calc(100%/6),var(--c2) 0 50%, var(--c1) 0 calc(500%/6),var(--c2) 0);
+		background-size: calc(1.732*var(--s)) var(--s);
+	}
+	
 	#board {
 		border: 1px solid black;
 	}
@@ -16,31 +34,75 @@
 		height: 0px;
 		width: 40%;
 		padding-bottom: 40%;
+		display: inline-block;
 		<!-- background-color: red; -->
 	}
+	
+	.main {
+		text-align: center;
+	}
+	
+	.dataContainer {
+		display: inline-block;
+		background-color: white;
+		vertical-align: top;
+		text-align: left;
+		padding: 20px;
+		border-radius: 5px;
+	}
+	
+	.turnDisplay {
+		margin-top: 200px;
+	}
+	
+	.inverted {
+		background-color: black;
+		color: white;
+	}
+	
 	</style>
 </head>
-<body>
+<body class="background">
 
-<div id="boardContainer">
-	<canvas id="board" width="100%" height="100%">
-</div>
-<div id="dataContainer">
-	<span id="whiteTakenPool">White has taken: </span>
-	<br/>
-	<span id="blackTakenPool">Black has taken: </span>
+<div class="main">
+
+	<div class="dataContainer turnDisplay">
+		<span id="whiteTurnDisplay">White's Move</span>
+	</div>
+	
+	<div class="dataContainer">
+		<span id="whiteTakenPool">White has taken: </span>
+		<table id="whiteTakenTable">
+		</table>
+	</div>
+	
+	<div id="boardContainer">
+		<canvas id="board" width="100%" height="100%">
+	</div>
+	
+	<div class="dataContainer inverted">
+		<span id="blackTakenPool">Black has taken: </span>
+		<table id="blackTakenTable">
+		</table>
+	</div>
+	
+	<div class="dataContainer turnDisplay inverted">
+		<span id="blackTurnDisplay">Black's Move</span>
+	</div>
+	
 </div>
 
 </body>
 
 <script>
-
+	
 	//INITALIZE VARIABLES
 	var boardContainer = document.getElementById('boardContainer');
 	var canvas = document.getElementById('board');
 	var plane = canvas.getContext('2d');
 	var selectedRow;
 	var selectedColumn;
+	var currentTurn;
 	
 	//ON LOAD
 	window.addEventListener('load', (event) => {
@@ -54,11 +116,14 @@
 		//BIND HIGHEST LEVEL EVENT LISTENER
 		canvas.addEventListener('click', handleCanvasClicked);
 		
+		//SET WHITE TO GO FIRST
+		//I call swapTurn when starting the game, so this is set to black so that white goes first
+		currentTurn = 'black';
+		
 		//HANDLE CLICK
 		function handleCanvasClicked(event)
 		{
 			//DETERMINE WHICH SQUARE HAS BEEN CLICKED
-			//console.log('handleCanvasClicked called');
 			let row = Math.floor(event.offsetX / squareSize);
 			let column = Math.floor(event.offsetY / squareSize);
 			//PASS EVENT TO OBJECT
@@ -92,6 +157,7 @@
 			addPiece = function(piece){
 				this.contains = piece;
 			}
+			//SETS THE CONTAINED PIECES SQUARE DATA, THEN RETURNS IT
 			getPiece = function(){
 				if(this.contains != null){
 					this.contains.setRow(this.row);
@@ -125,11 +191,13 @@
 			
 			//SQUARE-SPECIFIC CLICK HANDLER
 			handleClick(event){
+			
 				//LOG
 				console.log('square ' + this.row + ', ' + this.column + ' clicked');
-				//logic here to work out if something is already selected, and either de-select or take action as neccessary
 				
+				//CHECK IF HIGHLIGHTED - PIECE HAS ALREADY BEEN SELECTED, THIS CLICK WILL BE A VALID MOVE
 				if(this.highlighted == true){
+				
 					//CHECK FOR OPPONENTS PIECE
 					if(this.getPiece() != null){
 						updateTakenPool(this.getPiece());
@@ -140,22 +208,38 @@
 					squares[selectedRow][selectedColumn].contains = null;
 					//DESELECT EVERYTHING
 					deselectEverything();
+					//SWAP TURN
+					swapTurn();
+					
+				//SQUARE NOT HIGHLIGHTED - CHECK IF SQUARE HAS A PIECE CONTAINED
 				}else if(this.getPiece() != null){
+				
 					//DIFFERNENT PIECE SELECTED, DESELECT EVERYTHING
 					deselectEverything();
-					//SET SELECTED
-					this.selected = true;
-					//SET UTILITY VARIABLE
-					//do i need these?
-					selectedRow = this.row;
-					selectedColumn = this.column;
-					
-					//SET PIECES VALID MOVES TO HIGHLIGHTED
-					let validMoves = this.getPiece().getValidMoves(getBoardState());
-					for(i = 0; i < validMoves.length; i++){
-						squares[validMoves[i].row][validMoves[i].column].highlighted = true;
+					//CHECK IF ITS THE RIGHT PIECES TURN
+					if(this.getPiece().colour == currentTurn){
+						//SET SELECTED
+						this.selected = true;
+						//SET UTILITY VARIABLE
+						//do i need these?
+						selectedRow = this.row;
+						selectedColumn = this.column;
+						
+						//SET PIECES VALID MOVES TO HIGHLIGHTED
+						let validMoves = this.getPiece().getValidMoves(getBoardState());
+						for(i = 0; i < validMoves.length; i++){
+							//CHECK FOR ERROR
+							if(typeof(squares[validMoves[i].row][validMoves[i].column]) == 'undefined'){
+								alert('Undefined: attempting to access row: ' + validMoves[i].row + ', column: ' + validMoves[i].column);
+							}else{
+								//HIGHLIGHT VALID MOVE SQUARES
+								squares[validMoves[i].row][validMoves[i].column].highlighted = true;
+							}
+						}
 					}
+					
 				}else{
+					//EMPTY SQUARE CLICKED - DESELECT EVERYTHING
 					deselectEverything();
 				}
 				
@@ -197,9 +281,22 @@
 		function updateTakenPool(piece)
 		{
 			if(piece.colour == 'black'){
-				document.getElementById('whiteTakenPool').innerHTML = document.getElementById('whiteTakenPool').innerHTML + piece.getName() + ', ';
+				document.getElementById('whiteTakenTable').insertRow(0).insertCell(0).innerHTML = piece.getName();
 			}else{
-				document.getElementById('blackTakenPool').innerHTML = document.getElementById('blackTakenPool').innerHTML + piece.getName() + ', ';
+				document.getElementById('blackTakenTable').insertRow(0).insertCell(0).innerHTML = piece.getName();
+			}
+		}
+		
+		function swapTurn()
+		{
+			if(currentTurn == 'white'){
+				currentTurn = 'black';
+				document.getElementById('whiteTurnDisplay').style.color = 'white';
+				document.getElementById('blackTurnDisplay').style.color = 'white';
+			}else{
+				currentTurn = 'white';
+				document.getElementById('whiteTurnDisplay').style.color = 'black';
+				document.getElementById('blackTurnDisplay').style.color = 'black';
 			}
 		}
 		
@@ -272,6 +369,7 @@
 		//draw board first time for testing
 		populateBoard();
 		drawBoard();
+		swapTurn();
 
 	
 	//close onload function
