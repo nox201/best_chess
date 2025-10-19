@@ -64,33 +64,35 @@
 </head>
 <body class="background">
 
-<div class="main">
+	<div class="main">
+	
+		<button id="testMove">Make Move</button>
 
-	<div class="dataContainer turnDisplay">
-		<span id="whiteTurnDisplay">White's Move</span>
+		<div class="dataContainer turnDisplay">
+			<span id="whiteTurnDisplay">White's Move</span>
+		</div>
+		
+		<div class="dataContainer">
+			<span id="whiteTakenPool">White has taken: </span>
+			<table id="whiteTakenTable">
+			</table>
+		</div>
+		
+		<div id="boardContainer">
+			<canvas id="board" width="100%" height="100%"></canvas>
+		</div>
+		
+		<div class="dataContainer inverted">
+			<span id="blackTakenPool">Black has taken: </span>
+			<table id="blackTakenTable">
+			</table>
+		</div>
+		
+		<div class="dataContainer turnDisplay inverted">
+			<span id="blackTurnDisplay">Black's Move</span>
+		</div>
+		
 	</div>
-	
-	<div class="dataContainer">
-		<span id="whiteTakenPool">White has taken: </span>
-		<table id="whiteTakenTable">
-		</table>
-	</div>
-	
-	<div id="boardContainer">
-		<canvas id="board" width="100%" height="100%">
-	</div>
-	
-	<div class="dataContainer inverted">
-		<span id="blackTakenPool">Black has taken: </span>
-		<table id="blackTakenTable">
-		</table>
-	</div>
-	
-	<div class="dataContainer turnDisplay inverted">
-		<span id="blackTurnDisplay">Black's Move</span>
-	</div>
-	
-</div>
 
 </body>
 
@@ -271,7 +273,7 @@
 				row.forEach((column) => {
 					if(column.getPiece() != null){
 						let currentPiece = column.getPiece();
-						state.push({'row': currentPiece.row, 'column': currentPiece.column, 'colour': currentPiece.colour});
+						state.push({'row': currentPiece.row, 'column': currentPiece.column, 'colour': currentPiece.colour, 'piece': currentPiece});
 					}
 				})
 			});
@@ -300,7 +302,70 @@
 			}
 		}
 		
-		
+		function makeMove()
+		{
+			//INIT SCOPED VARIABLES
+			let boardState = getBoardState();
+			let player = currentTurn;
+			let allValidMoves = [];
+			let selectedSquare = null;
+			let selectedMove = null;
+			
+			//ITERATE THE BOARD STATE
+			boardState.forEach((piece) => {
+				//ONLY COMPUTE THE MOVE FOR THE CURRENT PLAYER
+				if(piece.colour == player){
+					//ONLY STORE VALID MOVES THAT CAN BE MADE (getValidMoves can return an empty array)
+					if(piece.piece.getValidMoves(boardState).length > 0){
+						allValidMoves.push({'piece': piece, 'moves': piece.piece.getValidMoves(boardState)});
+					}
+				}
+			});
+			
+			//console.log(allValidMoves);
+			//for(let i = 0; i < allValidMoves.length; i++){
+				//for(let j = 0; j < allValidMoves[i].moves.length; j++){
+					//console.log(allValidMoves[i].moves);
+					//squares[allValidMoves[i].moves[j].row][allValidMoves[i].moves[j].column].highlighted = true;
+					
+					//squares[allValidMoves[i].moves[j].row][allValidMoves[i].moves[j].column].addPiece(allValidMoves[i].piece);
+					//squares[allValidMoves[i].piece.row][allValidMoves[i].piece.column].contains = null;
+				//}
+			//}
+			
+			//LOG ALL VALID MOVES
+			//console.log('allValidMoves[0].moves[0].row: ' + allValidMoves[0].moves[0].row + ', allValidMoves[0].moves[0].column: ' + allValidMoves[0].moves[0].column + ', piece: ' + allValidMoves[0].piece);
+			
+			//---------
+			//RANDOM AI
+			//---------
+			
+			//PICK RANDOM PIECE TO MOVE
+			randomPieceIndex = Math.floor(Math.random() * allValidMoves.length);
+			//PICK RANDOM MOVE FOR THAT RANDOM PIECE
+			randomMoveIndex = Math.floor(Math.random() * allValidMoves[randomPieceIndex].moves.length);
+			
+			//SET UTILITY VARIABLES - KEEPS THE LINES SHORTER :D
+			selectedSquare = squares[allValidMoves[randomPieceIndex].piece.row][allValidMoves[randomPieceIndex].piece.column];
+			selectedMove = allValidMoves[randomPieceIndex].moves[randomMoveIndex];
+			
+			//LOG AI MOVE
+			console.log('AI move: ' + selectedSquare.getPiece().colour + ' ' + selectedSquare.getPiece().getName() + ' at row ' + selectedSquare.getPiece().row + ', column ' + selectedSquare.getPiece().column + ' moves to row ' + selectedMove.row + ', column ' + selectedMove.column);
+			
+			//ADD PIECE TO SQUARES BY GETTING PIECE FROM THE SQUARES - DONT PASS THE PIECE OBJECT AROUND
+			squares[selectedMove.row][selectedMove.column].addPiece(selectedSquare.getPiece());
+			//REMOVE PIECE FROM OLD LOCATION
+			selectedSquare.contains = null;
+			
+			//UPDATE TAKEN POOL?
+			//this function takes a piece - haven't got logic for working out if a piece was taken yet
+			//SWAP PLAYER
+			swapTurn();
+			//REDRAW
+			drawBoard();
+		}
+		//BIND AI MOVE TO BUTTON FOR TESTING
+		document.getElementById('testMove').addEventListener('click', makeMove);
 		
 		
 		

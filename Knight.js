@@ -22,7 +22,7 @@ class Knight extends Piece {
 		let validMoves = [];
 		let skip = false;
 		
-		this.log();
+		//this.log();
 		
 		//NNE
 		if(this.row < 7 && this.column > 1){
