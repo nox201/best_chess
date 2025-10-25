@@ -105,6 +105,7 @@
 	var selectedRow;
 	var selectedColumn;
 	var currentTurn;
+	var defendingCheck = false;
 	
 	//ON LOAD
 	window.addEventListener('load', (event) => {
@@ -154,6 +155,8 @@
 			centreY;
 			selected = false;
 			highlighted = false;
+			checked = false;
+			checkMated = false;
 			
 			//ADDS A PIECE TO THE SQUARE
 			addPiece = function(piece){
@@ -176,14 +179,17 @@
 				//CHECK IF PIECE SELECTED
 				if(this.selected){
 					plane.fillStyle = 'green';
-					plane.fillRect(squareSize * this.row, squareSize * this.column, squareSize, squareSize);
 				}else if(this.highlighted){
 					plane.fillStyle = 'lightgreen';
-					plane.fillRect(squareSize * this.row, squareSize * this.column, squareSize, squareSize);
+				}else if(this.checked){
+				console.log('should be checked');
+					plane.fillStyle = 'red';
+				}else if(this.checkMated){
+					plane.fillStyle = 'purple';
 				}else{
 					plane.fillStyle = this.colour;
-					plane.fillRect(squareSize * this.row, squareSize * this.column, squareSize, squareSize);
 				}
+				plane.fillRect(squareSize * this.row, squareSize * this.column, squareSize, squareSize);
 				
 				if(this.getPiece() != null){
 					//DRAW PIECE
@@ -195,21 +201,37 @@
 			handleClick(event){
 			
 				//LOG
-				console.log('square ' + this.row + ', ' + this.column + ' clicked');
+				//console.log('square ' + this.row + ', ' + this.column + ' clicked');
 				
 				//CHECK IF HIGHLIGHTED - PIECE HAS ALREADY BEEN SELECTED, THIS CLICK WILL BE A VALID MOVE
 				if(this.highlighted == true){
 				
 					//CHECK FOR OPPONENTS PIECE
 					if(this.getPiece() != null){
+					//TAKE PIECE
 						updateTakenPool(this.getPiece());
 					}
 					//MOVE PIECE
 					this.addPiece(squares[selectedRow][selectedColumn].getPiece());
 					//REMOVE PIECE FROM OLD SQUARE
 					squares[selectedRow][selectedColumn].contains = null;
+					
 					//DESELECT EVERYTHING
 					deselectEverything();
+					
+					//CHECK FOR ATTACKING CHECK
+					//this isnt the best way to do it, its useless for any of the other check related stuff, like preventing a player moving into check, or playing a move that doesnt get them out of CHECK
+					//i should have something that checks the boardstate for a check or checkmate
+					let piecesValidMoves = this.getPiece().getValidMoves(getBoardState());
+					for(let i = 0; i < piecesValidMoves.length; i++){
+						if(squares[piecesValidMoves[i].row][piecesValidMoves[i].column].getPiece() != null){
+							if(squares[piecesValidMoves[i].row][piecesValidMoves[i].column].getPiece().getName() == 'King'){
+								squares[piecesValidMoves[i].row][piecesValidMoves[i].column].checked = true;
+								defendingCheck = true;
+							}
+						}
+					}
+					
 					//SWAP TURN
 					swapTurn();
 					
