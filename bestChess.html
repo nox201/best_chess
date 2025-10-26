@@ -54,6 +54,12 @@
 	.turnDisplay {
 		margin-top: 200px;
 	}
+	#whiteCheckDisplay {
+		display: none;
+	}
+	#blackCheckDisplay {
+		display: none;
+	}
 	
 	.inverted {
 		background-color: black;
@@ -70,6 +76,7 @@
 
 		<div class="dataContainer turnDisplay">
 			<span id="whiteTurnDisplay">White's Move</span>
+			<span id="whiteCheckDisplay">You are in Check</span>
 		</div>
 		
 		<div class="dataContainer">
@@ -90,6 +97,7 @@
 		
 		<div class="dataContainer turnDisplay inverted">
 			<span id="blackTurnDisplay">Black's Move</span>
+			<span id="blackCheckDisplay">You are in Check</span>
 		</div>
 		
 	</div>
@@ -97,6 +105,19 @@
 </body>
 
 <script>
+
+	//TO-DO
+	//checkmate logic
+	//pawns can move two squares on their first move
+	//ai - https://www.freecodecamp.org/news/simple-chess-ai-step-by-step-1d55a9266977/
+	//ai - position evaluation
+	//ai - search tree
+	//ai - alpha-beta
+	//ai - improved evaluation function
+	//game controls - start new game, game win/lost state
+	//css - style, title, alerts, maybe see if i can make the background colours change over time
+	//actual pieces - either images or proper drawings
+	
 	
 	//INITALIZE VARIABLES
 	var boardContainer = document.getElementById('boardContainer');
@@ -106,6 +127,7 @@
 	var selectedColumn;
 	var currentTurn;
 	var defendingCheck = false;
+	var preventMove = false;
 	
 	//ON LOAD
 	window.addEventListener('load', (event) => {
@@ -182,7 +204,6 @@
 				}else if(this.highlighted){
 					plane.fillStyle = 'lightgreen';
 				}else if(this.checked){
-				console.log('should be checked');
 					plane.fillStyle = 'red';
 				}else if(this.checkMated){
 					plane.fillStyle = 'purple';
@@ -202,9 +223,44 @@
 			
 				//LOG
 				//console.log('square ' + this.row + ', ' + this.column + ' clicked');
+				//SET FLAG
+				preventMove = false;
 				
 				//CHECK IF HIGHLIGHTED - PIECE HAS ALREADY BEEN SELECTED, THIS CLICK WILL BE A VALID MOVE
 				if(this.highlighted == true){
+				
+					//CHECK IF MOVE LEAVES PLAYER IN CHECK - EMULATE PIECE MOVE
+					//this has bugs in it - if a king takes a piece that would then cause the king to be in check, the program errors correctly and moves the king back, but the act of 'pretending' to make the move deletes the piece that was trying to be taken. 
+					//either work out how to preserve the pretend-taken piece, or create a method that duplicates the boardstate and operates on that, so as not to mess with the real boardstate
+					this.addPiece(squares[selectedRow][selectedColumn].getPiece());
+					//REMOVE PIECE FROM OLD SQUARE
+					squares[selectedRow][selectedColumn].contains = null;
+					//CHECK IF PLAYER STILL IN CHECK
+					squares.forEach((row) => {
+						row.forEach((column) => {
+							if(column.getPiece() != null){
+								if(column.getPiece().getName() == 'King' && column.getPiece().colour == currentTurn){
+									if(column.getPiece().isChecked(getBoardState())){
+										//NOTIFY PLAYER AND RETURN
+										if(defendingCheck){
+											alert('You are still in check');
+										}else{
+											alert('You cannot move in to check');
+										}
+										//SET FLAG, THANKS JAVASCRIPT FOR NOT SUPPORTING RETURN STATEMENTS WITHIN FOREACH LOOPS
+										preventMove = true;
+									}
+								}
+							}
+						})
+					});
+					//REVERT MOVE - EVEN FOR SUCCESSFUL MOVES, THE LOGIC BELOW WILL ACTION THE PIECE MOVE
+					squares[selectedRow][selectedColumn].contains = this.getPiece();
+					this.addPiece(null);
+
+					if(preventMove){
+						return;
+					}
 				
 					//CHECK FOR OPPONENTS PIECE
 					if(this.getPiece() != null){
@@ -218,19 +274,6 @@
 					
 					//DESELECT EVERYTHING
 					deselectEverything();
-					
-					//CHECK FOR ATTACKING CHECK
-					//this isnt the best way to do it, its useless for any of the other check related stuff, like preventing a player moving into check, or playing a move that doesnt get them out of CHECK
-					//i should have something that checks the boardstate for a check or checkmate
-					let piecesValidMoves = this.getPiece().getValidMoves(getBoardState());
-					for(let i = 0; i < piecesValidMoves.length; i++){
-						if(squares[piecesValidMoves[i].row][piecesValidMoves[i].column].getPiece() != null){
-							if(squares[piecesValidMoves[i].row][piecesValidMoves[i].column].getPiece().getName() == 'King'){
-								squares[piecesValidMoves[i].row][piecesValidMoves[i].column].checked = true;
-								defendingCheck = true;
-							}
-						}
-					}
 					
 					//SWAP TURN
 					swapTurn();
@@ -447,6 +490,22 @@
 			//ITERATE SQUARES
 			squares.forEach((row) => {
 				row.forEach((column) => {
+					//UNDO ANY CHECKED COLUMNS
+					column.checked = false;
+					//CHECK FOR CHECK
+					if(column.getPiece() != null){
+						if(column.getPiece().getName() == 'King'){
+							if(column.getPiece().isChecked(getBoardState())){
+								column.checked = true;
+								defendingCheck = true;
+								document.getElementById(column.getPiece().colour + 'CheckDisplay').style.display = 'block';
+							}else{
+								//column.checked = false;
+								defendingCheck = false;
+								document.getElementById(column.getPiece().colour + 'CheckDisplay').style.display = 'none';
+							}
+						}
+					}
 					//DRAW SQUARE
 					column.draw();
 				})
