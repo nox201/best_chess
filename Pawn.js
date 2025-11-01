@@ -4,6 +4,7 @@ class Pawn extends Piece {
 	}
 	
 	name = 'Pawn';
+	firstMove = true;
 	
 	draw = function(row, column, squareSize){
 		//SET UTILITY VARIABLES
@@ -25,9 +26,19 @@ class Pawn extends Piece {
 
 		switch(this.colour){
 			case 'white':
-				//CAN MOVE DIRECTLY FORWARD
-				if(this.isOccupied(boardState, this.row, this.column - 1, this.colour) == 'none'){
-					validMoves.push({'row': this.row, 'column': this.column - 1});
+				if(this.firstMove){
+					//CAN MOVE DIRECTLY FORWARD TWO SPACES
+					if(this.isOccupied(boardState, this.row, this.column - 1, this.colour) == 'none'){
+						validMoves.push({'row': this.row, 'column': this.column - 1});
+						if(this.isOccupied(boardState, this.row, this.column - 2, this.colour) == 'none'){
+							validMoves.push({'row': this.row, 'column': this.column - 2});
+						}
+					}
+				}else{
+					//CAN MOVE DIRECTLY FORWARD
+					if(this.isOccupied(boardState, this.row, this.column - 1, this.colour) == 'none'){
+						validMoves.push({'row': this.row, 'column': this.column - 1});
+					}
 				}
 				//CAN TAKE FORWARD AND TO EITHER SIDE
 				if(this.isOccupied(boardState, this.row - 1, this.column - 1, this.colour) == 'opponent'){
@@ -38,9 +49,19 @@ class Pawn extends Piece {
 				}
 			break;
 			case 'black':
-				//CAN MOVE DIRECTLY FORWARD
-				if(this.isOccupied(boardState, this.row, this.column + 1, this.colour) == 'none'){
-					validMoves.push({'row': this.row, 'column': this.column + 1});
+				if(this.firstMove){
+					//CAN MOVE DIRECTLY FORWARD TWO SPACES
+					if(this.isOccupied(boardState, this.row, this.column + 1, this.colour) == 'none'){
+						validMoves.push({'row': this.row, 'column': this.column + 1});
+						if(this.isOccupied(boardState, this.row, this.column + 2, this.colour) == 'none'){
+							validMoves.push({'row': this.row, 'column': this.column + 2});
+						}
+					}
+				}else{
+					//CAN MOVE DIRECTLY FORWARD
+					if(this.isOccupied(boardState, this.row, this.column + 1, this.colour) == 'none'){
+						validMoves.push({'row': this.row, 'column': this.column + 1});
+					}
 				}
 				//CAN TAKE FORWARD AND TO EITHER SIDE
 				if(this.isOccupied(boardState, this.row - 1, this.column + 1, this.colour) == 'opponent'){

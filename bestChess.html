@@ -108,7 +108,6 @@
 
 	//TO-DO
 	//checkmate logic
-	//pawns can move two squares on their first move
 	//ai - https://www.freecodecamp.org/news/simple-chess-ai-step-by-step-1d55a9266977/
 	//ai - position evaluation
 	//ai - search tree
@@ -225,13 +224,16 @@
 				//console.log('square ' + this.row + ', ' + this.column + ' clicked');
 				//SET FLAG
 				preventMove = false;
+				let existingPiece = null;
 				
 				//CHECK IF HIGHLIGHTED - PIECE HAS ALREADY BEEN SELECTED, THIS CLICK WILL BE A VALID MOVE
 				if(this.highlighted == true){
 				
 					//CHECK IF MOVE LEAVES PLAYER IN CHECK - EMULATE PIECE MOVE
-					//this has bugs in it - if a king takes a piece that would then cause the king to be in check, the program errors correctly and moves the king back, but the act of 'pretending' to make the move deletes the piece that was trying to be taken. 
-					//either work out how to preserve the pretend-taken piece, or create a method that duplicates the boardstate and operates on that, so as not to mess with the real boardstate
+					if(this.getPiece()){
+						//REMEMBER THE PIECE THAT MIGHT BE ON THE CURRENT SQUARE
+						existingPiece = this.getPiece();
+					}
 					this.addPiece(squares[selectedRow][selectedColumn].getPiece());
 					//REMOVE PIECE FROM OLD SQUARE
 					squares[selectedRow][selectedColumn].contains = null;
@@ -256,7 +258,11 @@
 					});
 					//REVERT MOVE - EVEN FOR SUCCESSFUL MOVES, THE LOGIC BELOW WILL ACTION THE PIECE MOVE
 					squares[selectedRow][selectedColumn].contains = this.getPiece();
-					this.addPiece(null);
+					if(existingPiece){
+						this.addPiece(existingPiece);
+					}else{
+						this.addPiece(null);
+					}
 
 					if(preventMove){
 						return;
@@ -266,6 +272,11 @@
 					if(this.getPiece() != null){
 					//TAKE PIECE
 						updateTakenPool(this.getPiece());
+					}
+					//CHECK IF PIECE IS PAWN
+					if(squares[selectedRow][selectedColumn].getPiece().getName() == 'Pawn'){
+						//SET FIRST MOVE
+						squares[selectedRow][selectedColumn].getPiece().firstMove = false;
 					}
 					//MOVE PIECE
 					this.addPiece(squares[selectedRow][selectedColumn].getPiece());
@@ -440,7 +451,7 @@
 
 		//POPULATE BOARD WITH 8X8 SQUARES
 		var squares = [];
-		var squareColour = 'grey';
+		var squareColour = 'white';
 		for(i = 0; i < 8; i++){
 			squares[i] = [];
 			for(j = 0; j < 8; j++){
@@ -468,8 +479,8 @@
 			squares[0][7].addPiece(new Castle(plane, 'white'));
 			squares[1][7].addPiece(new Knight(plane, 'white'));
 			squares[2][7].addPiece(new Bishop(plane, 'white'));
-			squares[3][7].addPiece(new King(plane, 'white'));
-			squares[4][7].addPiece(new Queen(plane, 'white'));
+			squares[3][7].addPiece(new Queen(plane, 'white'));
+			squares[4][7].addPiece(new King(plane, 'white'));
 			squares[5][7].addPiece(new Bishop(plane, 'white'));
 			squares[6][7].addPiece(new Knight(plane, 'white'));
 			squares[7][7].addPiece(new Castle(plane, 'white'));
@@ -477,8 +488,8 @@
 			squares[0][0].addPiece(new Castle(plane, 'black'));
 			squares[1][0].addPiece(new Knight(plane, 'black'));
 			squares[2][0].addPiece(new Bishop(plane, 'black'));
-			squares[3][0].addPiece(new Queen(plane, 'black'));
-			squares[4][0].addPiece(new King(plane, 'black'));
+			squares[3][0].addPiece(new King(plane, 'black'));
+			squares[4][0].addPiece(new Queen(plane, 'black'));
 			squares[5][0].addPiece(new Bishop(plane, 'black'));
 			squares[6][0].addPiece(new Knight(plane, 'black'));
 			squares[7][0].addPiece(new Castle(plane, 'black'));
