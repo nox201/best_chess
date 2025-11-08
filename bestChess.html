@@ -442,8 +442,67 @@
 		}
 		//BIND AI MOVE TO BUTTON FOR TESTING
 		document.getElementById('testMove').addEventListener('click', makeMove);
-		
-		
+			
+		function isCheckMated(boardState, squares)
+		{
+			let checkMated = true;
+			let existingPiece = null;
+			//let newBoardState;
+			//let emulatedSquares;
+			//ITERATE THE BOARD STATE
+			boardState.forEach((occupiedSquare) => {
+				//ONLY COMPUTE THE MOVE FOR THE CURRENT PLAYER
+				if(occupiedSquare.colour != currentTurn){
+					//ONLY STORE VALID MOVES THAT CAN BE MADE (getValidMoves can return an empty array)
+					if(occupiedSquare.piece.getValidMoves(boardState).length > 0){
+						occupiedSquare.piece.getValidMoves(boardState).forEach((move) => {
+							//RESET NEW BOARD STATE TO ACTUAL BOARD STATE
+							//emulatedSquares = squares;
+							//EMULATE MOVE
+							if(squares[move.row][move.column].getPiece() != null){
+								existingPiece = squares[move.row][move.column].getPiece();
+							}else{
+								existingPiece = null;
+							}
+							squares[move.row][move.column].addPiece(occupiedSquare.piece);
+							squares[occupiedSquare.row][occupiedSquare.column].contains = null;
+							
+							//console.log(emulatedSquares);
+
+							squares.forEach((row) => {
+								row.forEach((column) => {
+									if(column.getPiece() != null){
+										if(column.getPiece().getName() === 'King'){
+											if(!column.getPiece().isChecked(getBoardState())){
+												
+												//THIS DOESNT WORK - THIS IS COMING BACK FALSE EVEN WHEN IT SHOULDNT
+												console.log('MOVE REMOVES KING FROM CHECK MATE');
+												console.log(occupiedSquare.piece.getName() + ' moved to ' + move.row + ', ' + move.column);
+												//appears that every move is counting as removing the king from check.
+												checkMated = false;
+											}
+										}
+									}
+								})
+							});
+							
+							//RESET MOVE
+							if(existingPiece){
+								squares[move.row][move.column].contains = existingPiece;
+							}else{
+								squares[move.row][move.column].contains = null;
+							}
+							squares[occupiedSquare.row][occupiedSquare.column].addPiece(occupiedSquare.piece);
+							
+						});
+					}
+				}
+			});
+			if(checkMated){
+				console.log('king is check mated?');
+			}	
+			return checkMated;
+		}
 		
 		//=================
 		//BOARD FUNCTIONS
@@ -488,8 +547,8 @@
 			squares[0][0].addPiece(new Castle(plane, 'black'));
 			squares[1][0].addPiece(new Knight(plane, 'black'));
 			squares[2][0].addPiece(new Bishop(plane, 'black'));
-			squares[3][0].addPiece(new King(plane, 'black'));
-			squares[4][0].addPiece(new Queen(plane, 'black'));
+			squares[3][0].addPiece(new Queen(plane, 'black'));
+			squares[4][0].addPiece(new King(plane, 'black'));
 			squares[5][0].addPiece(new Bishop(plane, 'black'));
 			squares[6][0].addPiece(new Knight(plane, 'black'));
 			squares[7][0].addPiece(new Castle(plane, 'black'));
@@ -507,9 +566,15 @@
 					if(column.getPiece() != null){
 						if(column.getPiece().getName() == 'King'){
 							if(column.getPiece().isChecked(getBoardState())){
-								column.checked = true;
-								defendingCheck = true;
-								document.getElementById(column.getPiece().colour + 'CheckDisplay').style.display = 'block';
+								if(isCheckMated(getBoardState(), squares)){
+									//CHECK MATE
+									column.checkMated = true;
+								}else{
+									//CHECKED
+									column.checked = true;
+									defendingCheck = true;
+									document.getElementById(column.getPiece().colour + 'CheckDisplay').style.display = 'block';
+								}
 							}else{
 								//column.checked = false;
 								defendingCheck = false;

@@ -242,29 +242,5 @@ class King extends Piece {
 		});
 		return checked;
 	}
-	
-	isCheckMated = function(boardState)
-	{
-		let checkMated = true;
-		//ITERATE THE BOARD STATE
-		boardState.forEach((piece) => {
-			//ONLY COMPUTE THE MOVE FOR THE CURRENT PLAYER
-			if(piece.colour != this.colour){
-				//ONLY STORE VALID MOVES THAT CAN BE MADE (getValidMoves can return an empty array)
-				if(piece.piece.getValidMoves(boardState).length > 0){
-					piece.piece.getValidMoves(boardState).forEach((move) => {
-						if(move.row != this.row && move.column != this.column){
-							//KING IS CHECKED
-							//console.log(this.colour + ' king is check mated');
-							checkMated = false;
-						}
-					});
-				}
-			}
-		});
-		if(checkMated){
-			console.log(this.colour + ' king is check mated');
-		}	
-		return checkMated;
-	}
+
 }
