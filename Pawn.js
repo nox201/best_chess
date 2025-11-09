@@ -7,17 +7,13 @@ class Pawn extends Piece {
 	firstMove = true;
 	
 	draw = function(row, column, squareSize){
-		//SET UTILITY VARIABLES
-		let centreX = squareSize * row + (squareSize / 2);
-		let centreY = squareSize * column + (squareSize / 2);
-		//DRAW CIRCLE
-		this.plane.lineWidth = 3;
-		this.plane.beginPath();
-		this.plane.arc(centreX, centreY, (squareSize / 4), 0, Math.PI * 2);
-		this.plane.strokeStyle = 'black';
-		this.plane.stroke();
-		this.plane.fillStyle = this.colour;
-		this.plane.fill();
+		//DRAW UNICODE CHARACTER
+		this.plane.fillStyle = 'black';
+		if(this.colour == 'white'){
+			this.plane.fillText('\u{2659}', squareSize * row + (squareSize / 2), squareSize * column + squareSize);
+		}else{
+			this.plane.fillText('\u{265F}', squareSize * row + (squareSize / 2), squareSize * column + squareSize);
+		}
 	}
 	
 	getValidMoves = function(boardState){

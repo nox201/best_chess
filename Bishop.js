@@ -6,19 +6,13 @@ class Bishop extends Piece {
 	name = 'Bishop';
 	
 	draw = function(row, column, squareSize){
-		//SET UTILITY VARIABLES
-		let centreX = squareSize * row + (squareSize / 2);
-		let centreY = squareSize * column + (squareSize / 2);
-		//DRAW SQUARE
-		plane.beginPath();
-		plane.moveTo(squareSize * row + squareSize * 0.50, squareSize * column + squareSize * 0.33);
-		plane.lineTo(squareSize * row + squareSize * 0.75, squareSize * column + squareSize * 0.75);
-		plane.lineTo(squareSize * row + squareSize * 0.25, squareSize * column + squareSize * 0.75);
-		plane.lineTo(squareSize * row + squareSize * 0.50, squareSize * column + squareSize * 0.33);
-		plane.strokeStyle = 'black';
-		plane.stroke();
-		plane.fillStyle = this.colour;
-		plane.fill();
+		//DRAW UNICODE CHARACTER
+		this.plane.fillStyle = 'black';
+		if(this.colour == 'white'){
+			this.plane.fillText('\u{2657}', squareSize * row + (squareSize / 2), squareSize * column + squareSize);
+		}else{
+			this.plane.fillText('\u{265D}', squareSize * row + (squareSize / 2), squareSize * column + squareSize);
+		}
 	}
 	
 	getValidMoves = function(boardState){

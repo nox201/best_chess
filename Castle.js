@@ -6,14 +6,13 @@ class Castle extends Piece {
 	name = 'Castle';
 	
 	draw = function(row, column, squareSize){
-		//SET UTILITY VARIABLES
-		let centreX = squareSize * row + (squareSize / 2);
-		let centreY = squareSize * column + (squareSize / 2);
-		//DRAW SQUARE
-		plane.strokeStyle = 'black';
-		plane.strokeRect(squareSize * row + (squareSize / 4), squareSize * column + (squareSize / 4), squareSize / 2, squareSize / 2);
-		plane.fillStyle = this.colour;
-		plane.fillRect(squareSize * row + (squareSize / 4), squareSize * column + (squareSize / 4), squareSize / 2, squareSize / 2);
+		//DRAW UNICODE CHARACTER
+		this.plane.fillStyle = 'black';
+		if(this.colour == 'white'){
+			this.plane.fillText('\u{2656}', squareSize * row + (squareSize / 2), squareSize * column + squareSize);
+		}else{
+			this.plane.fillText('\u{265C}', squareSize * row + (squareSize / 2), squareSize * column + squareSize);
+		}
 	}
 	
 	getValidMoves = function(boardState){

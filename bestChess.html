@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <head>
 
 	<title>Bishops Castle</title>
@@ -107,7 +108,6 @@
 <script>
 
 	//TO-DO
-	//checkmate logic
 	//ai - https://www.freecodecamp.org/news/simple-chess-ai-step-by-step-1d55a9266977/
 	//ai - position evaluation
 	//ai - search tree
@@ -127,6 +127,7 @@
 	var currentTurn;
 	var defendingCheck = false;
 	var preventMove = false;
+	var gameOver = false;
 	
 	//ON LOAD
 	window.addEventListener('load', (event) => {
@@ -136,12 +137,18 @@
 		canvas.height = canvas.width;
 		//SET SQUARE DIMENSIONS
 		var squareSize = Math.floor(canvas.width / 8);
+		//SET FONT - USED FOR HAVING UNICODE CHESS PIECES AS TEXT
+		//to-do - make this dynamic based on canvas width
+		plane.font = '70px Tahoma';
+		this.plane.textAlign = 'center';
+		//also this could replaced with 
+		this.plane.textBaseline = 'bottom';
 		
 		//BIND HIGHEST LEVEL EVENT LISTENER
 		canvas.addEventListener('click', handleCanvasClicked);
 		
 		//SET WHITE TO GO FIRST
-		//I call swapTurn when starting the game, so this is set to black so that white goes first
+		//I call swapTurn when starting the game, this is set to black so that white goes first
 		currentTurn = 'black';
 		
 		//HANDLE CLICK
@@ -206,6 +213,8 @@
 					plane.fillStyle = 'red';
 				}else if(this.checkMated){
 					plane.fillStyle = 'purple';
+					//SET GAME OVER FLAG
+					gameOver = true;
 				}else{
 					plane.fillStyle = this.colour;
 				}
@@ -447,17 +456,13 @@
 		{
 			let checkMated = true;
 			let existingPiece = null;
-			//let newBoardState;
-			//let emulatedSquares;
 			//ITERATE THE BOARD STATE
 			boardState.forEach((occupiedSquare) => {
 				//ONLY COMPUTE THE MOVE FOR THE CURRENT PLAYER
-				if(occupiedSquare.colour != currentTurn){
+				if(occupiedSquare.colour == currentTurn){
 					//ONLY STORE VALID MOVES THAT CAN BE MADE (getValidMoves can return an empty array)
 					if(occupiedSquare.piece.getValidMoves(boardState).length > 0){
 						occupiedSquare.piece.getValidMoves(boardState).forEach((move) => {
-							//RESET NEW BOARD STATE TO ACTUAL BOARD STATE
-							//emulatedSquares = squares;
 							//EMULATE MOVE
 							if(squares[move.row][move.column].getPiece() != null){
 								existingPiece = squares[move.row][move.column].getPiece();
@@ -467,17 +472,19 @@
 							squares[move.row][move.column].addPiece(occupiedSquare.piece);
 							squares[occupiedSquare.row][occupiedSquare.column].contains = null;
 							
-							//console.log(emulatedSquares);
-
+							//MOVE EMULATED, NOW CHECK IF THE KING IS STILL IN CHECK
 							squares.forEach((row) => {
 								row.forEach((column) => {
 									if(column.getPiece() != null){
-										if(column.getPiece().getName() === 'King'){
+										//ONLY COMPUTE FOR THE CURRENT PLAYERS KING
+										if(column.getPiece().getName() === 'King' && column.getPiece().colour === currentTurn){
+											//console.log(occupiedSquare.piece.colour + ' ' + occupiedSquare.piece.getName() + ' moved to ' + move.row + ', ' + move.column);
+											//console.log(getBoardState());
+											//console.log('isChecked is ' + column.getPiece().isChecked(getBoardState()));
+											//CHECK CHECK (ha ha ha)
 											if(!column.getPiece().isChecked(getBoardState())){
-												
-												//THIS DOESNT WORK - THIS IS COMING BACK FALSE EVEN WHEN IT SHOULDNT
-												console.log('MOVE REMOVES KING FROM CHECK MATE');
-												console.log(occupiedSquare.piece.getName() + ' moved to ' + move.row + ', ' + move.column);
+												//console.log('MOVE REMOVES KING FROM CHECK MATE');
+												//console.log(occupiedSquare.piece.getName() + ' moved to ' + move.row + ', ' + move.column);
 												//appears that every move is counting as removing the king from check.
 												checkMated = false;
 											}
@@ -499,7 +506,8 @@
 				}
 			});
 			if(checkMated){
-				console.log('king is check mated?');
+				//GAME OVER STATE?
+				//console.log('king is check mated?');
 			}	
 			return checkMated;
 		}
@@ -586,6 +594,13 @@
 					column.draw();
 				})
 			});
+			
+			//CHECK FOR GAME OVER
+			if(gameOver){
+				//GAME OVER STATE?
+				alert('Checkmate! ' + currentTurn + ' loses.');
+			}
+			
 		}
 
 		//draw board first time for testing

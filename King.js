@@ -6,19 +6,13 @@ class King extends Piece {
 	name = 'King';
 	
 	draw = function(row, column, squareSize){
-		//SET UTILITY VARIABLES
-		let centreX = squareSize * row + (squareSize / 2);
-		let centreY = squareSize * column + (squareSize / 2);
-		//DRAW SQUARE
-		plane.beginPath();
-		plane.moveTo(squareSize * row + squareSize * 0.66, squareSize * column + squareSize * 0.15);
-		plane.lineTo(squareSize * row + squareSize * 0.75, squareSize * column + squareSize * 0.75);
-		plane.lineTo(squareSize * row + squareSize * 0.25, squareSize * column + squareSize * 0.75);
-		plane.lineTo(squareSize * row + squareSize * 0.33, squareSize * column + squareSize * 0.15);
-		plane.strokeStyle = 'black';
-		plane.stroke();
-		plane.fillStyle = this.colour;
-		plane.fill();
+		//DRAW UNICODE CHARACTER
+		this.plane.fillStyle = 'black';
+		if(this.colour == 'white'){
+			this.plane.fillText('\u{2654}', squareSize * row + (squareSize / 2), squareSize * column + squareSize);
+		}else{
+			this.plane.fillText('\u{265A}', squareSize * row + (squareSize / 2), squareSize * column + squareSize);
+		}
 	}
 	
 	//GET VALID MOVES FOR KING IS JUST THE SAME CODE FROM BISHOP AND CASTLE COPY/PASTED
@@ -233,7 +227,7 @@ class King extends Piece {
 					piece.piece.getValidMoves(boardState).forEach((move) => {
 						if(move.row == this.row && move.column == this.column){
 							//KING IS CHECKED
-							console.log(this.colour + ' king is checked');
+							//console.log(this.colour + ' king is checked');
 							checked = true;
 						}
 					});
