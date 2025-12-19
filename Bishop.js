@@ -5,16 +5,6 @@ class Bishop extends Piece {
 	
 	name = 'Bishop';
 	
-	draw = function(row, column, squareSize){
-		//DRAW UNICODE CHARACTER
-		this.plane.fillStyle = 'black';
-		if(this.colour == 'white'){
-			this.plane.fillText('\u{2657}', squareSize * row + (squareSize / 2), squareSize * column + squareSize);
-		}else{
-			this.plane.fillText('\u{265D}', squareSize * row + (squareSize / 2), squareSize * column + squareSize);
-		}
-	}
-	
 	getValidMoves = function(boardState){
 		
 		//INIT

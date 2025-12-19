@@ -5,16 +5,6 @@ class Knight extends Piece {
 	
 	name = 'Knight';
 	
-	draw = function(row, column, squareSize){
-		//DRAW UNICODE CHARACTER
-		this.plane.fillStyle = 'black';
-		if(this.colour == 'white'){
-			this.plane.fillText('\u{2658}', squareSize * row + (squareSize / 2), squareSize * column + squareSize);
-		}else{
-			this.plane.fillText('\u{265E}', squareSize * row + (squareSize / 2), squareSize * column + squareSize);
-		}
-	}
-	
 	getValidMoves = function(boardState){
 		
 		//INIT

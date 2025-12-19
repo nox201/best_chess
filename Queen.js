@@ -5,16 +5,6 @@ class Queen extends Piece {
 	
 	name = 'Queen';
 	
-	draw = function(row, column, squareSize){
-		//DRAW UNICODE CHARACTER
-		this.plane.fillStyle = 'black';
-		if(this.colour == 'white'){
-			this.plane.fillText('\u{2655}', squareSize * row + (squareSize / 2), squareSize * column + squareSize);
-		}else{
-			this.plane.fillText('\u{265B}', squareSize * row + (squareSize / 2), squareSize * column + squareSize);
-		}
-	}
-	
 	//GET VALID MOVES FOR QUEEN IS JUST THE SAME CODE FROM BISHOP AND CASTLE COPY/PASTED
 	getValidMoves = function(boardState){
 		

@@ -5,16 +5,6 @@ class King extends Piece {
 	
 	name = 'King';
 	
-	draw = function(row, column, squareSize){
-		//DRAW UNICODE CHARACTER
-		this.plane.fillStyle = 'black';
-		if(this.colour == 'white'){
-			this.plane.fillText('\u{2654}', squareSize * row + (squareSize / 2), squareSize * column + squareSize);
-		}else{
-			this.plane.fillText('\u{265A}', squareSize * row + (squareSize / 2), squareSize * column + squareSize);
-		}
-	}
-	
 	//GET VALID MOVES FOR KING IS JUST THE SAME CODE FROM BISHOP AND CASTLE COPY/PASTED
 	getValidMoves = function(boardState){
 		

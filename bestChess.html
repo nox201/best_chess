@@ -12,6 +12,7 @@
 	<script src="King.js"></script>
 	
 	<style>
+		
 	.background {
 		--s: 61px; /* control the size*/
 		--c1: #b2b2b2;
@@ -36,7 +37,6 @@
 		width: 40%;
 		padding-bottom: 40%;
 		display: inline-block;
-		<!-- background-color: red; -->
 	}
 	
 	.main {
@@ -52,6 +52,11 @@
 		border-radius: 5px;
 	}
 	
+	.takenPool {
+		width: 100%;
+		text-align: center;
+	}
+	
 	.turnDisplay {
 		margin-top: 200px;
 	}
@@ -60,6 +65,12 @@
 	}
 	#blackCheckDisplay {
 		display: none;
+	}
+	#whiteTakenPool {
+		width: 30px;
+	}
+	#blackTakenPool {
+		width: 30px;
 	}
 	
 	.inverted {
@@ -80,20 +91,16 @@
 			<span id="whiteCheckDisplay">You are in Check</span>
 		</div>
 		
-		<div class="dataContainer">
-			<span id="whiteTakenPool">White has taken: </span>
-			<table id="whiteTakenTable">
-			</table>
+		<div id="whiteTakenPool" class="dataContainer">
+			<!--<span>White has taken: </span>-->
 		</div>
 		
 		<div id="boardContainer">
 			<canvas id="board" width="100%" height="100%"></canvas>
 		</div>
 		
-		<div class="dataContainer inverted">
-			<span id="blackTakenPool">Black has taken: </span>
-			<table id="blackTakenTable">
-			</table>
+		<div id="blackTakenPool"  class="dataContainer inverted">
+			<!--<span>Black has taken: </span>-->
 		</div>
 		
 		<div class="dataContainer turnDisplay inverted">
@@ -138,10 +145,11 @@
 		//SET SQUARE DIMENSIONS
 		var squareSize = Math.floor(canvas.width / 8);
 		//SET FONT - USED FOR HAVING UNICODE CHESS PIECES AS TEXT
-		//to-do - make this dynamic based on canvas width
-		plane.font = '70px Tahoma';
+		//Not sure if this is just a nice coincidence that the 'right' font size is nearly exactly the same as squaresize or thats how px values work
+		var fontSize = squareSize - 5;
+		//SET PLANE FONT
+		plane.font = fontSize + 'px Tahoma';
 		this.plane.textAlign = 'center';
-		//also this could replaced with 
 		this.plane.textBaseline = 'bottom';
 		
 		//BIND HIGHEST LEVEL EVENT LISTENER
@@ -367,10 +375,13 @@
 		
 		function updateTakenPool(piece)
 		{
+			
+			//PIECE VARIABLE HERE IS THE TAKEN PIECE, SO NEED THE OPPOSITE PLAYERS TAKEN POOL
 			if(piece.colour == 'black'){
-				document.getElementById('whiteTakenTable').insertRow(0).insertCell(0).innerHTML = piece.getName();
+				//SHOW PIECES UNICODE CHARACTER IN TAKEN POOL
+				document.getElementById('whiteTakenPool').insertAdjacentHTML('beforeend', '<p style="margin: 0px; font-size: ' + Math.floor(fontSize / 2) + 'px">' + piece.getUnicode() + '</p>');
 			}else{
-				document.getElementById('blackTakenTable').insertRow(0).insertCell(0).innerHTML = piece.getName();
+				document.getElementById('blackTakenPool').insertAdjacentHTML('beforeend', '<p style="margin: 0px; font-size: ' + Math.floor(fontSize / 2) + 'px">' + piece.getUnicode() + '</p>');
 			}
 		}
 		
