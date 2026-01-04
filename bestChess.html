@@ -3,6 +3,8 @@
 <head>
 
 	<title>Bishops Castle</title>
+	<script src="Board.js"></script>
+	<script src="Square.js"></script>
 	<script src="Piece.js"></script>
 	<script src="Pawn.js"></script>
 	<script src="Castle.js"></script>
@@ -159,19 +161,24 @@
 		//I call swapTurn when starting the game, this is set to black so that white goes first
 		currentTurn = 'black';
 		
+		var board = new Board(canvas);
+		board.populateBoard(null);
+		board.draw();
+		
 		//HANDLE CLICK
 		function handleCanvasClicked(event)
 		{
 			//DETERMINE WHICH SQUARE HAS BEEN CLICKED
-			let row = Math.floor(event.offsetX / squareSize);
-			let column = Math.floor(event.offsetY / squareSize);
+			let x = Math.floor(event.offsetX / squareSize);
+			let y = Math.floor(event.offsetY / squareSize);
 			//PASS EVENT TO OBJECT
-			squares[row][column].handleClick(event);
+			//squares[row][column].handleClick(event);
+			board.get(x, y).handleClick(event);
 		}
 
 		//SQUARE CLASS
 		//Represents one of the 64 coloured squares on the chessboard
-		class Square {
+		/*class Square {
 			constructor(plane, row, column, colour, contains){
 				this.plane = plane;
 				this.row = row;
@@ -287,7 +294,7 @@
 				
 					//CHECK FOR OPPONENTS PIECE
 					if(this.getPiece() != null){
-					//TAKE PIECE
+						//TAKE PIECE
 						updateTakenPool(this.getPiece());
 					}
 					//CHECK IF PIECE IS PAWN
@@ -370,8 +377,22 @@
 					}
 				})
 			});
+			
+			console.log('getBoardState return: ');
+			console.log(state);
+			
 			return state;
 		}
+		
+		function getBoardScore(scoreState)
+		{
+			let score = 0;
+			//ITERATE SQUARES
+			scoreState.forEach((occupiedSquare) => {
+				score += occupiedSquare.piece.getScore();
+			});
+			return score;
+		}*/
 		
 		function updateTakenPool(piece)
 		{
@@ -433,8 +454,36 @@
 			//console.log('allValidMoves[0].moves[0].row: ' + allValidMoves[0].moves[0].row + ', allValidMoves[0].moves[0].column: ' + allValidMoves[0].moves[0].column + ', piece: ' + allValidMoves[0].piece);
 			
 			//---------
-			//RANDOM AI
+			//AI
 			//---------
+			
+			//GET CURRENT BOARD SCORE
+			currentBoardScore = getBoardScore(boardState);
+			console.log('Current Board Score: ' + currentBoardScore);
+			emulatedBoard = getBoard(boardState);
+			
+			//-----------------------------------------------------***************
+			//issue I have here is that my board state is not consistent
+			//sometimes its an array containing 32 objects, one for each piece
+			//sometimes its a 8x8 multi-dimensional array, arranged like the chessboard grid
+			
+			//possible 'easy' fix is to make getBoard return the same 32 object array format, same as getBoardState
+
+			for(i = 0; i < allValidMoves.length; i++){
+				//GET PIECE
+				selectedPiece = allValidMoves[i].piece;
+				for(j = 0; j < allValidMoves[i].moves.length; j++){
+
+					//GET MOVE
+					selectedMove = allValidMoves[i].moves[j];
+					//EMULATE MOVE
+					emulatedBoard[selectedMove.row][selectedMove.column].addPiece(selectedPiece);
+					emulatedBoard[selectedPiece.row][selectedPiece.column].contains = null;
+					
+					score = getBoardScore(emulatedBoard);
+					console.log(score);
+				}
+			}
 			
 			//PICK RANDOM PIECE TO MOVE
 			randomPieceIndex = Math.floor(Math.random() * allValidMoves.length);
@@ -443,18 +492,22 @@
 			
 			//SET UTILITY VARIABLES - KEEPS THE LINES SHORTER :D
 			selectedSquare = squares[allValidMoves[randomPieceIndex].piece.row][allValidMoves[randomPieceIndex].piece.column];
+			//this is the random move, but can be replaced with something like chosenMove, created earlier
+			//switch(difficulty) - will swap between random and how many moves ahead the algorithm checks
 			selectedMove = allValidMoves[randomPieceIndex].moves[randomMoveIndex];
 			
 			//LOG AI MOVE
 			console.log('AI move: ' + selectedSquare.getPiece().colour + ' ' + selectedSquare.getPiece().getName() + ' at row ' + selectedSquare.getPiece().row + ', column ' + selectedSquare.getPiece().column + ' moves to row ' + selectedMove.row + ', column ' + selectedMove.column);
 			
 			//ADD PIECE TO SQUARES BY GETTING PIECE FROM THE SQUARES - DONT PASS THE PIECE OBJECT AROUND
+			if(squares[selectedMove.row][selectedMove.column].getPiece() != null){
+				//UPDATE TAKEN POOL
+				updateTakenPool(squares[selectedMove.row][selectedMove.column].getPiece());
+			}
 			squares[selectedMove.row][selectedMove.column].addPiece(selectedSquare.getPiece());
 			//REMOVE PIECE FROM OLD LOCATION
 			selectedSquare.contains = null;
 			
-			//UPDATE TAKEN POOL?
-			//this function takes a piece - haven't got logic for working out if a piece was taken yet
 			//SWAP PLAYER
 			swapTurn();
 			//REDRAW
@@ -528,7 +581,7 @@
 		//=================
 
 		//POPULATE BOARD WITH 8X8 SQUARES
-		var squares = [];
+		/*var squares = [];
 		var squareColour = 'white';
 		for(i = 0; i < 8; i++){
 			squares[i] = [];
@@ -544,8 +597,56 @@
 				//CREATE SQUARE
 				squares[i].push(new Square(plane, i, j, squareColour, null));
 			}
+		}*/
+		
+		//console.log('Squares: ');
+		//console.log(squares);
+		
+		//THIS METHOD SHOULD BE HAVE CREATED MUCH EARLIER IN DEVELOPMENT :P
+		//RETURNS A COPY OF THE BOARD STATE - USED FOR EMULATING MOVES WITHOUT UPDATING THE RENDERED BOARD
+		function getBoard(boardState)
+		{
+		
+			let board = boardState;
+			return board;
+		
+			/*let board = [];
+			for(i = 0; i < 8; i++){
+				board[i] = [];
+				for(j = 0; j < 8; j++){
+					//DONT ALTERNATE COLOUR ON THE FIRST SQUARE OF EACH ROW
+					if(j != 0){
+						if(squareColour == 'white'){
+							squareColour = 'grey';
+						}else{
+							squareColour = 'white';
+						}
+					}
+					//SET FLAG
+					let hasPiece = false;
+					//ITERATE BOARDSTATE
+					for(h = 0; h < boardState.length; h++){
+						//CHECK IF BOARDSTATE HAS A PIECE
+						if(boardState[h].row == i && boardState[h].column == j){
+							//CREATE SQUARE WITH PIECE
+							board[i].push(new Square(plane, i, j, squareColour, boardState[h].piece));
+							hasPiece = true;
+						}
+					}
+					if(!hasPiece){
+						//CREATE EMPTY SQUARE
+						board[i].push(new Square(plane, i, j, squareColour, null));
+					}
+				}
+			}
+			
+			console.log('getBoard return: ');
+			console.log(board);
+			
+			return board;*/
 		}
 		
+		/*
 		function populateBoard()
 		{
 			//ADD PAWNS
@@ -612,11 +713,11 @@
 				alert('Checkmate! ' + currentTurn + ' loses.');
 			}
 			
-		}
+		}*/
 
 		//draw board first time for testing
-		populateBoard();
-		drawBoard();
+		//populateBoard();
+		//drawBoard();
 		swapTurn();
 
 	

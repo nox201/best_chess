@@ -5,16 +5,16 @@ class Piece {
 	}
 	plane;
 	colour;
-	row;
-	column;
+	x;
+	y;
 	moveset;
 	name = 'Generic Piece';
 	
-	setRow = function(row){
-		this.row = row;
+	setX = function(x){
+		this.x = x;
 	}
-	setColumn = function(column){
-		this.column = column;
+	setY = function(y){
+		this.y = y;
 	}
 	
 	getName = function(){
@@ -23,7 +23,7 @@ class Piece {
 	
 	//GENERIC LOGGING FUNCTION
 	log = function(){
-		console.log(this.colour + ' ' + this.name + ' at Row: ' + this.row + ', Column: ' + this.column);
+		console.log(this.colour + ' ' + this.name + ' at X: ' + this.x + ', Y: ' + this.y);
 	}
 	
 	//UTILITY FUNCTION TO RETURN THE PIECES UNICODE CHARACTER
@@ -47,23 +47,55 @@ class Piece {
 		return fontUnicodeCharacters[this.colour][this.name];
 	}
 	
+	//GET THE PIECES SCORE
+	getScore = function(){
+		let scores = [];
+		scores['white'] = [];
+		scores['white']['Bishop'] = 30;
+		scores['white']['Castle'] = 50;
+		scores['white']['King'] = 900;
+		scores['white']['Knight'] = 30;
+		scores['white']['Pawn'] = 10;
+		scores['white']['Queen'] = 90;
+		scores['black'] = [];
+		scores['black']['Bishop'] = -30;
+		scores['black']['Castle'] = -50;
+		scores['black']['King'] = -900;
+		scores['black']['Knight'] = -30;
+		scores['black']['Pawn'] = -10;
+		scores['black']['Queen'] = -90;
+		//RETURN UNICODE CHARACTER
+		return scores[this.colour][this.name];
+	}
 	
-	draw = function(row, column, squareSize){
+	
+	draw = function(x, y, squareSize){
 		//DRAW UNICODE CHARACTER
 		this.plane.fillStyle = 'black';
-		this.plane.fillText(this.getUnicode(), squareSize * row + (squareSize / 2), squareSize * column + squareSize);
+		this.plane.fillText(this.getUnicode(), squareSize * x + (squareSize / 2), squareSize * y + squareSize);
 	}
 	
 	getValidMoves = function(boardState){
 		return [];
 	};
 	
+	isOccupied = function(board, x, y, colour){
+		if(board.get(x, y).getPiece() == null){
+			return 'none';
+		}
+		if(board.get(x, y).getPiece().colour == colour){
+			return 'player';
+		}else{
+			return 'opponent';
+		}
+	}
+	
 	//should this function live elsewhere?
-	isOccupied(boardState, row, column, colour){
+	/* isOccupied(board, x, y, colour){
 		let occupied = 'none';
 		//console.log(boardState);
 		for(let i = 0; i < boardState.length; i++){
-			if(boardState[i].row == row && boardState[i].column == column){
+			if(boardState[i].x == x && boardState[i].y == y){
 				if(boardState[i].colour == colour){
 					occupied = 'player';
 				}else{
@@ -72,5 +104,5 @@ class Piece {
 			}
 		}
 		return occupied;
-	}
+	} */
 }
