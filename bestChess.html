@@ -3,6 +3,8 @@
 <head>
 
 	<title>Bishops Castle</title>
+	<script src="State.js"></script>
+	<script src="Renderer.js"></script>
 	<script src="Board.js"></script>
 	<script src="Square.js"></script>
 	<script src="Piece.js"></script>
@@ -161,9 +163,15 @@
 		//I call swapTurn when starting the game, this is set to black so that white goes first
 		currentTurn = 'black';
 		
-		var board = new Board(canvas);
-		board.populateBoard(null);
-		board.draw();
+		//CREATE BOARD
+		var board = new Board(null);
+		//console.log('Original Board:');
+		//board.debug();
+		
+		//CREATE RENDERER
+		var renderer = new Renderer(canvas);
+		//DRAW BOARD
+		renderer.draw(board);
 		
 		//HANDLE CLICK
 		function handleCanvasClicked(event)
@@ -175,230 +183,14 @@
 			//squares[row][column].handleClick(event);
 			board.get(x, y).handleClick(event);
 		}
-
-		//SQUARE CLASS
-		//Represents one of the 64 coloured squares on the chessboard
-		/*class Square {
-			constructor(plane, row, column, colour, contains){
-				this.plane = plane;
-				this.row = row;
-				this.column = column;
-				this.colour = colour;
-				this.contains = contains;
-				//utility variables
-				this.centreX = squareSize * this.row + (squareSize / 2);
-				this.centreY = squareSize * this.column + (squareSize / 2);
-			};
-			plane;
-			row;
-			column;
-			colour;
-			contains;
-			centreX;
-			centreY;
-			selected = false;
-			highlighted = false;
-			checked = false;
-			checkMated = false;
-			
-			//ADDS A PIECE TO THE SQUARE
-			addPiece = function(piece){
-				this.contains = piece;
-			}
-			//SETS THE CONTAINED PIECES SQUARE DATA, THEN RETURNS IT
-			getPiece = function(){
-				if(this.contains != null){
-					this.contains.setRow(this.row);
-					this.contains.setColumn(this.column);
-					return this.contains;
-				}else{
-					return null;
-				}
-			}
-			
-			//DRAWS THE SQUARE, INCLUDING ANY PIECE IN THE SQUARE
-			draw = function(){
-			
-				//CHECK IF PIECE SELECTED
-				if(this.selected){
-					plane.fillStyle = 'green';
-				}else if(this.highlighted){
-					plane.fillStyle = 'lightgreen';
-				}else if(this.checked){
-					plane.fillStyle = 'red';
-				}else if(this.checkMated){
-					plane.fillStyle = 'purple';
-					//SET GAME OVER FLAG
-					gameOver = true;
-				}else{
-					plane.fillStyle = this.colour;
-				}
-				plane.fillRect(squareSize * this.row, squareSize * this.column, squareSize, squareSize);
-				
-				if(this.getPiece() != null){
-					//DRAW PIECE
-					this.getPiece().draw(this.row, this.column, squareSize);
-				}
-			};
-			
-			//SQUARE-SPECIFIC CLICK HANDLER
-			handleClick(event){
-			
-				//LOG
-				//console.log('square ' + this.row + ', ' + this.column + ' clicked');
-				//SET FLAG
-				preventMove = false;
-				let existingPiece = null;
-				
-				//CHECK IF HIGHLIGHTED - PIECE HAS ALREADY BEEN SELECTED, THIS CLICK WILL BE A VALID MOVE
-				if(this.highlighted == true){
-				
-					//CHECK IF MOVE LEAVES PLAYER IN CHECK - EMULATE PIECE MOVE
-					if(this.getPiece()){
-						//REMEMBER THE PIECE THAT MIGHT BE ON THE CURRENT SQUARE
-						existingPiece = this.getPiece();
-					}
-					this.addPiece(squares[selectedRow][selectedColumn].getPiece());
-					//REMOVE PIECE FROM OLD SQUARE
-					squares[selectedRow][selectedColumn].contains = null;
-					//CHECK IF PLAYER STILL IN CHECK
-					squares.forEach((row) => {
-						row.forEach((column) => {
-							if(column.getPiece() != null){
-								if(column.getPiece().getName() == 'King' && column.getPiece().colour == currentTurn){
-									if(column.getPiece().isChecked(getBoardState())){
-										//NOTIFY PLAYER AND RETURN
-										if(defendingCheck){
-											alert('You are still in check');
-										}else{
-											alert('You cannot move in to check');
-										}
-										//SET FLAG, THANKS JAVASCRIPT FOR NOT SUPPORTING RETURN STATEMENTS WITHIN FOREACH LOOPS
-										preventMove = true;
-									}
-								}
-							}
-						})
-					});
-					//REVERT MOVE - EVEN FOR SUCCESSFUL MOVES, THE LOGIC BELOW WILL ACTION THE PIECE MOVE
-					squares[selectedRow][selectedColumn].contains = this.getPiece();
-					if(existingPiece){
-						this.addPiece(existingPiece);
-					}else{
-						this.addPiece(null);
-					}
-
-					if(preventMove){
-						return;
-					}
-				
-					//CHECK FOR OPPONENTS PIECE
-					if(this.getPiece() != null){
-						//TAKE PIECE
-						updateTakenPool(this.getPiece());
-					}
-					//CHECK IF PIECE IS PAWN
-					if(squares[selectedRow][selectedColumn].getPiece().getName() == 'Pawn'){
-						//SET FIRST MOVE
-						squares[selectedRow][selectedColumn].getPiece().firstMove = false;
-					}
-					//MOVE PIECE
-					this.addPiece(squares[selectedRow][selectedColumn].getPiece());
-					//REMOVE PIECE FROM OLD SQUARE
-					squares[selectedRow][selectedColumn].contains = null;
-					
-					//DESELECT EVERYTHING
-					deselectEverything();
-					
-					//SWAP TURN
-					swapTurn();
-					
-				//SQUARE NOT HIGHLIGHTED - CHECK IF SQUARE HAS A PIECE CONTAINED
-				}else if(this.getPiece() != null){
-				
-					//DIFFERNENT PIECE SELECTED, DESELECT EVERYTHING
-					deselectEverything();
-					//CHECK IF ITS THE RIGHT PIECES TURN
-					if(this.getPiece().colour == currentTurn){
-						//SET SELECTED
-						this.selected = true;
-						//SET UTILITY VARIABLE
-						//do i need these?
-						selectedRow = this.row;
-						selectedColumn = this.column;
-						
-						//SET PIECES VALID MOVES TO HIGHLIGHTED
-						let validMoves = this.getPiece().getValidMoves(getBoardState());
-						for(i = 0; i < validMoves.length; i++){
-							//CHECK FOR ERROR
-							if(typeof(squares[validMoves[i].row][validMoves[i].column]) == 'undefined'){
-								alert('Undefined: attempting to access row: ' + validMoves[i].row + ', column: ' + validMoves[i].column);
-							}else{
-								//HIGHLIGHT VALID MOVE SQUARES
-								squares[validMoves[i].row][validMoves[i].column].highlighted = true;
-							}
-						}
-					}
-					
-				}else{
-					//EMPTY SQUARE CLICKED - DESELECT EVERYTHING
-					deselectEverything();
-				}
-				
-				//REDRAW BOARD
-				drawBoard();
-			}
-		}
-		
-		//=================
-		//UTILITY FUNCTIONS
-		//=================
-		
-		function deselectEverything()
-		{
-			//ITERATE SQUARES
-			squares.forEach((row) => {
-				row.forEach((column) => {
-					column.selected = false;
-					column.highlighted = false;
-				})
-			});
-		}
-		
-		function getBoardState()
-		{
-			let state = [];
-			//ITERATE SQUARES
-			squares.forEach((row) => {
-				row.forEach((column) => {
-					if(column.getPiece() != null){
-						let currentPiece = column.getPiece();
-						state.push({'row': currentPiece.row, 'column': currentPiece.column, 'colour': currentPiece.colour, 'piece': currentPiece});
-					}
-				})
-			});
-			
-			console.log('getBoardState return: ');
-			console.log(state);
-			
-			return state;
-		}
-		
-		function getBoardScore(scoreState)
-		{
-			let score = 0;
-			//ITERATE SQUARES
-			scoreState.forEach((occupiedSquare) => {
-				score += occupiedSquare.piece.getScore();
-			});
-			return score;
-		}*/
 		
 		function updateTakenPool(piece)
 		{
 			
+			console.log(piece);
+			
 			//PIECE VARIABLE HERE IS THE TAKEN PIECE, SO NEED THE OPPOSITE PLAYERS TAKEN POOL
-			if(piece.colour == 'black'){
+			if(piece.getColour() == 'black'){
 				//SHOW PIECES UNICODE CHARACTER IN TAKEN POOL
 				document.getElementById('whiteTakenPool').insertAdjacentHTML('beforeend', '<p style="margin: 0px; font-size: ' + Math.floor(fontSize / 2) + 'px">' + piece.getUnicode() + '</p>');
 			}else{
@@ -419,306 +211,63 @@
 			}
 		}
 		
-		function makeMove()
-		{
-			//INIT SCOPED VARIABLES
-			let boardState = getBoardState();
-			let player = currentTurn;
-			let allValidMoves = [];
-			let selectedSquare = null;
-			let selectedMove = null;
-			
-			//ITERATE THE BOARD STATE
-			boardState.forEach((piece) => {
-				//ONLY COMPUTE THE MOVE FOR THE CURRENT PLAYER
-				if(piece.colour == player){
-					//ONLY STORE VALID MOVES THAT CAN BE MADE (getValidMoves can return an empty array)
-					if(piece.piece.getValidMoves(boardState).length > 0){
-						allValidMoves.push({'piece': piece, 'moves': piece.piece.getValidMoves(boardState)});
-					}
-				}
-			});
-			
-			//console.log(allValidMoves);
-			//for(let i = 0; i < allValidMoves.length; i++){
-				//for(let j = 0; j < allValidMoves[i].moves.length; j++){
-					//console.log(allValidMoves[i].moves);
-					//squares[allValidMoves[i].moves[j].row][allValidMoves[i].moves[j].column].highlighted = true;
-					
-					//squares[allValidMoves[i].moves[j].row][allValidMoves[i].moves[j].column].addPiece(allValidMoves[i].piece);
-					//squares[allValidMoves[i].piece.row][allValidMoves[i].piece.column].contains = null;
-				//}
-			//}
-			
-			//LOG ALL VALID MOVES
-			//console.log('allValidMoves[0].moves[0].row: ' + allValidMoves[0].moves[0].row + ', allValidMoves[0].moves[0].column: ' + allValidMoves[0].moves[0].column + ', piece: ' + allValidMoves[0].piece);
-			
-			//---------
-			//AI
-			//---------
-			
-			//GET CURRENT BOARD SCORE
-			currentBoardScore = getBoardScore(boardState);
-			console.log('Current Board Score: ' + currentBoardScore);
-			emulatedBoard = getBoard(boardState);
-			
-			//-----------------------------------------------------***************
-			//issue I have here is that my board state is not consistent
-			//sometimes its an array containing 32 objects, one for each piece
-			//sometimes its a 8x8 multi-dimensional array, arranged like the chessboard grid
-			
-			//possible 'easy' fix is to make getBoard return the same 32 object array format, same as getBoardState
-
-			for(i = 0; i < allValidMoves.length; i++){
-				//GET PIECE
-				selectedPiece = allValidMoves[i].piece;
-				for(j = 0; j < allValidMoves[i].moves.length; j++){
-
-					//GET MOVE
-					selectedMove = allValidMoves[i].moves[j];
-					//EMULATE MOVE
-					emulatedBoard[selectedMove.row][selectedMove.column].addPiece(selectedPiece);
-					emulatedBoard[selectedPiece.row][selectedPiece.column].contains = null;
-					
-					score = getBoardScore(emulatedBoard);
-					console.log(score);
-				}
-			}
-			
-			//PICK RANDOM PIECE TO MOVE
-			randomPieceIndex = Math.floor(Math.random() * allValidMoves.length);
-			//PICK RANDOM MOVE FOR THAT RANDOM PIECE
-			randomMoveIndex = Math.floor(Math.random() * allValidMoves[randomPieceIndex].moves.length);
-			
-			//SET UTILITY VARIABLES - KEEPS THE LINES SHORTER :D
-			selectedSquare = squares[allValidMoves[randomPieceIndex].piece.row][allValidMoves[randomPieceIndex].piece.column];
-			//this is the random move, but can be replaced with something like chosenMove, created earlier
-			//switch(difficulty) - will swap between random and how many moves ahead the algorithm checks
-			selectedMove = allValidMoves[randomPieceIndex].moves[randomMoveIndex];
-			
-			//LOG AI MOVE
-			console.log('AI move: ' + selectedSquare.getPiece().colour + ' ' + selectedSquare.getPiece().getName() + ' at row ' + selectedSquare.getPiece().row + ', column ' + selectedSquare.getPiece().column + ' moves to row ' + selectedMove.row + ', column ' + selectedMove.column);
-			
-			//ADD PIECE TO SQUARES BY GETTING PIECE FROM THE SQUARES - DONT PASS THE PIECE OBJECT AROUND
-			if(squares[selectedMove.row][selectedMove.column].getPiece() != null){
-				//UPDATE TAKEN POOL
-				updateTakenPool(squares[selectedMove.row][selectedMove.column].getPiece());
-			}
-			squares[selectedMove.row][selectedMove.column].addPiece(selectedSquare.getPiece());
-			//REMOVE PIECE FROM OLD LOCATION
-			selectedSquare.contains = null;
-			
-			//SWAP PLAYER
-			swapTurn();
-			//REDRAW
-			drawBoard();
+		function getRandomInt(max) {
+			return Math.floor(Math.random() * max);
 		}
-		//BIND AI MOVE TO BUTTON FOR TESTING
-		document.getElementById('testMove').addEventListener('click', makeMove);
-			
-		function isCheckMated(boardState, squares)
-		{
-			let checkMated = true;
-			let existingPiece = null;
-			//ITERATE THE BOARD STATE
-			boardState.forEach((occupiedSquare) => {
-				//ONLY COMPUTE THE MOVE FOR THE CURRENT PLAYER
-				if(occupiedSquare.colour == currentTurn){
-					//ONLY STORE VALID MOVES THAT CAN BE MADE (getValidMoves can return an empty array)
-					if(occupiedSquare.piece.getValidMoves(boardState).length > 0){
-						occupiedSquare.piece.getValidMoves(boardState).forEach((move) => {
-							//EMULATE MOVE
-							if(squares[move.row][move.column].getPiece() != null){
-								existingPiece = squares[move.row][move.column].getPiece();
-							}else{
-								existingPiece = null;
-							}
-							squares[move.row][move.column].addPiece(occupiedSquare.piece);
-							squares[occupiedSquare.row][occupiedSquare.column].contains = null;
-							
-							//MOVE EMULATED, NOW CHECK IF THE KING IS STILL IN CHECK
-							squares.forEach((row) => {
-								row.forEach((column) => {
-									if(column.getPiece() != null){
-										//ONLY COMPUTE FOR THE CURRENT PLAYERS KING
-										if(column.getPiece().getName() === 'King' && column.getPiece().colour === currentTurn){
-											//console.log(occupiedSquare.piece.colour + ' ' + occupiedSquare.piece.getName() + ' moved to ' + move.row + ', ' + move.column);
-											//console.log(getBoardState());
-											//console.log('isChecked is ' + column.getPiece().isChecked(getBoardState()));
-											//CHECK CHECK (ha ha ha)
-											if(!column.getPiece().isChecked(getBoardState())){
-												//console.log('MOVE REMOVES KING FROM CHECK MATE');
-												//console.log(occupiedSquare.piece.getName() + ' moved to ' + move.row + ', ' + move.column);
-												//appears that every move is counting as removing the king from check.
-												checkMated = false;
-											}
-										}
-									}
-								})
-							});
-							
-							//RESET MOVE
-							if(existingPiece){
-								squares[move.row][move.column].contains = existingPiece;
-							}else{
-								squares[move.row][move.column].contains = null;
-							}
-							squares[occupiedSquare.row][occupiedSquare.column].addPiece(occupiedSquare.piece);
-							
-						});
-					}
-				}
-			});
-			if(checkMated){
-				//GAME OVER STATE?
-				//console.log('king is check mated?');
-			}	
-			return checkMated;
-		}
-		
-		//=================
-		//BOARD FUNCTIONS
-		//=================
 
-		//POPULATE BOARD WITH 8X8 SQUARES
-		/*var squares = [];
-		var squareColour = 'white';
-		for(i = 0; i < 8; i++){
-			squares[i] = [];
-			for(j = 0; j < 8; j++){
-				//DONT ALTERNATE COLOUR ON THE FIRST SQUARE OF EACH ROW
-				if(j != 0){
-					if(squareColour == 'white'){
-						squareColour = 'grey';
-					}else{
-						squareColour = 'white';
-					}
-				}
-				//CREATE SQUARE
-				squares[i].push(new Square(plane, i, j, squareColour, null));
-			}
-		}*/
-		
-		//console.log('Squares: ');
-		//console.log(squares);
-		
-		//THIS METHOD SHOULD BE HAVE CREATED MUCH EARLIER IN DEVELOPMENT :P
-		//RETURNS A COPY OF THE BOARD STATE - USED FOR EMULATING MOVES WITHOUT UPDATING THE RENDERED BOARD
-		function getBoard(boardState)
-		{
-		
-			let board = boardState;
-			return board;
-		
-			/*let board = [];
-			for(i = 0; i < 8; i++){
-				board[i] = [];
-				for(j = 0; j < 8; j++){
-					//DONT ALTERNATE COLOUR ON THE FIRST SQUARE OF EACH ROW
-					if(j != 0){
-						if(squareColour == 'white'){
-							squareColour = 'grey';
-						}else{
-							squareColour = 'white';
-						}
-					}
-					//SET FLAG
-					let hasPiece = false;
-					//ITERATE BOARDSTATE
-					for(h = 0; h < boardState.length; h++){
-						//CHECK IF BOARDSTATE HAS A PIECE
-						if(boardState[h].row == i && boardState[h].column == j){
-							//CREATE SQUARE WITH PIECE
-							board[i].push(new Square(plane, i, j, squareColour, boardState[h].piece));
-							hasPiece = true;
-						}
-					}
-					if(!hasPiece){
-						//CREATE EMPTY SQUARE
-						board[i].push(new Square(plane, i, j, squareColour, null));
-					}
-				}
-			}
-			
-			console.log('getBoard return: ');
-			console.log(board);
-			
-			return board;*/
-		}
-		
-		/*
-		function populateBoard()
-		{
-			//ADD PAWNS
-			for(i = 0; i < 8; i++){
-				squares[i][1].addPiece(new Pawn(plane, 'black'));
-				squares[i][6].addPiece(new Pawn(plane, 'white'));
-			}
-			//ADD WHITE
-			squares[0][7].addPiece(new Castle(plane, 'white'));
-			squares[1][7].addPiece(new Knight(plane, 'white'));
-			squares[2][7].addPiece(new Bishop(plane, 'white'));
-			squares[3][7].addPiece(new Queen(plane, 'white'));
-			squares[4][7].addPiece(new King(plane, 'white'));
-			squares[5][7].addPiece(new Bishop(plane, 'white'));
-			squares[6][7].addPiece(new Knight(plane, 'white'));
-			squares[7][7].addPiece(new Castle(plane, 'white'));
-			//ADD BLACK
-			squares[0][0].addPiece(new Castle(plane, 'black'));
-			squares[1][0].addPiece(new Knight(plane, 'black'));
-			squares[2][0].addPiece(new Bishop(plane, 'black'));
-			squares[3][0].addPiece(new Queen(plane, 'black'));
-			squares[4][0].addPiece(new King(plane, 'black'));
-			squares[5][0].addPiece(new Bishop(plane, 'black'));
-			squares[6][0].addPiece(new Knight(plane, 'black'));
-			squares[7][0].addPiece(new Castle(plane, 'black'));
-			
-		}
-		
-		function drawBoard()
-		{
-			//ITERATE SQUARES
-			squares.forEach((row) => {
-				row.forEach((column) => {
-					//UNDO ANY CHECKED COLUMNS
-					column.checked = false;
-					//CHECK FOR CHECK
-					if(column.getPiece() != null){
-						if(column.getPiece().getName() == 'King'){
-							if(column.getPiece().isChecked(getBoardState())){
-								if(isCheckMated(getBoardState(), squares)){
-									//CHECK MATE
-									column.checkMated = true;
-								}else{
-									//CHECKED
-									column.checked = true;
-									defendingCheck = true;
-									document.getElementById(column.getPiece().colour + 'CheckDisplay').style.display = 'block';
-								}
-							}else{
-								//column.checked = false;
-								defendingCheck = false;
-								document.getElementById(column.getPiece().colour + 'CheckDisplay').style.display = 'none';
-							}
-						}
-					}
-					//DRAW SQUARE
-					column.draw();
-				})
-			});
-			
-			//CHECK FOR GAME OVER
-			if(gameOver){
-				//GAME OVER STATE?
-				alert('Checkmate! ' + currentTurn + ' loses.');
-			}
-			
-		}*/
-
-		//draw board first time for testing
-		//populateBoard();
-		//drawBoard();
+		//SWAP TURN WHEN STARTING GAME
 		swapTurn();
+		
+		//----------------------
+		//AI STUFF
+		//----------------------
+		
+		document.getElementById('testMove').addEventListener('click', function() {
+			//CALL FUNCTION
+			makeAiMove();
+		});
+		
+		function makeAiMove()
+		{
+			
+			//CREATE A COPY OF THE CURRENT BOARD
+			let emulatedBoard = new Board(board.getStateCopy());
+			
+			//ALL VALID MOVES
+			let allValidMoves = emulatedBoard.getAllValidMoves(currentTurn);
+			//console.log(allValidMoves);
+			
+			//going to have to iterate through all the moves, make them, then do a get score on them, then revert back
+			
+			
+			//PICK A RANDOM VALID MOVE
+			let randomValidMove = allValidMoves[getRandomInt(allValidMoves.length)];
+			let randomMove = randomValidMove.moves[getRandomInt(randomValidMove.moves.length)];
+			
+			//CHECK FOR TAKING PIECE
+			if(board.get(randomMove.x, randomMove.y) != null){
+				if(board.get(randomMove.x, randomMove.y).getColour() != currentTurn){
+					//UPDATE TAKEN POOL
+					updateTakenPool(board.get(randomMove.x, randomMove.y));
+				}
+			}
+			
+			//REMOVE PIECE FROM CURRENT SQUARE
+			emulatedBoard.set(randomValidMove.piece.getX(), randomValidMove.piece.getY(), null);
+			//PLACE PIECE IN NEW SQUARE
+			emulatedBoard.set(randomMove.x, randomMove.y, randomValidMove.piece);
+			
+			//POPULATE THE MAIN BOARD WITH MY NEW STATE
+			board.populateBoard(emulatedBoard.getStateCopy());
+			
+			//REDRAW
+			renderer.draw(board);
+			
+			//SWAP TURN
+			swapTurn();
+			
+		}
+		
 
 	
 	//close onload function

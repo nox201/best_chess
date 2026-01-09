@@ -1,6 +1,6 @@
 class Queen extends Piece {
-	constructor(plane, colour){
-		super(plane, colour);
+	constructor(colour){
+		super(colour);
 	}
 	
 	name = 'Queen';

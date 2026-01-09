@@ -102,23 +102,23 @@ class Square {
 			// Maybe I need a seperate 'State' object that holds the position of all the pieces, but afaik that's basically what I'm doing - i'd just have the squares array wrapped in an object?
 			
 			//CLONE CURRENT BOARD STATE
-			let emulatedState = this.board.getStateCopy();
+			//let emulatedState = this.board.getState();
 			//could this work?
-			//let emulatedState = new State(this.board.getState());
+			let emulatedState = this.board.getStateCopy();
 			
 			//EMULATE ADDING PIECE TO HIGHLIGHTED SQUARE
-			emulatedState[this.x][this.y].addPiece(this.board.getSelected().getPiece());
+			emulatedState.get(this.x, this.y).addPiece(this.board.getSelected().getPiece());
 			//EMULATE REMOVING PIECE FROM CURRENT SQUARE
-			emulatedState[currentlySelected.x][currentlySelected.y].removePiece();
+			emulatedState.get(currentlySelected.x, currentlySelected.y).removePiece();
 			//CREATE EMULATED BOARD
 			let emulatedBoard = new Board(canvas);
 			//SET EMULATED BOARD TO HAVE EMULATED STATE
-			emulatedBoard.populateBoard(emulatedState);
+			emulatedBoard.populateBoard(emulatedState.getSquares());
 			
 			//DEBUG
 			emulatedBoard.debug();
 			
-			this.board.debug();
+			//this.board.debug();
 			
 			//if(emulatedBoard.isInCheck()){
 				//PREVENT MOVE, NOTIFY USER

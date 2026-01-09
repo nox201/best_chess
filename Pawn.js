@@ -1,13 +1,14 @@
 class Pawn extends Piece {
-	constructor(plane, colour){
-		super(plane, colour);
+	constructor(colour){
+		super(colour);
 	}
 	
 	name = 'Pawn';
 	firstMove = true;
 	
-	getValidMoves = function(board){
+	getValidMoves = function(board, x, y){
 		
+		this.setPosition(x, y);
 		let validMoves = [];
 
 		switch(this.colour){

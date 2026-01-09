@@ -1,9 +1,7 @@
 class Piece {
-	constructor(plane, colour){
-		this.plane = plane;
+	constructor(colour){
 		this.colour = colour;
 	}
-	plane;
 	colour;
 	x;
 	y;
@@ -13,12 +11,28 @@ class Piece {
 	setX = function(x){
 		this.x = x;
 	}
+	getX = function(){
+		return this.x;
+	}
 	setY = function(y){
 		this.y = y;
+	}
+	getY = function(y){
+		return this.y;
+	}
+	setPosition(x, y){
+		this.x = x;
+		this.y = y;
+	}
+	getPosition(){
+		return {'x' : this.x, 'y' : this.y};
 	}
 	
 	getName = function(){
 		return this.name;
+	}
+	getColour = function(){
+		return this.colour;
 	}
 	
 	//GENERIC LOGGING FUNCTION
@@ -69,21 +83,28 @@ class Piece {
 	}
 	
 	
-	draw = function(x, y, squareSize){
+	/*draw = function(x, y, squareSize){
 		//DRAW UNICODE CHARACTER
 		this.plane.fillStyle = 'black';
 		this.plane.fillText(this.getUnicode(), squareSize * x + (squareSize / 2), squareSize * y + squareSize);
-	}
+	}*/
 	
 	getValidMoves = function(boardState){
 		return [];
 	};
 	
 	isOccupied = function(board, x, y, colour){
-		if(board.get(x, y).getPiece() == null){
+		//CHECK THAT SQUARE IS ON THE BOARD
+		if(x < 0 || x > 7 || y < 0 || y > 7){
+			//LOG OUT OF BOUNDS
+			//console.log('isOccupied function attempted to search out of bounds: ' + x + ', ' + y);
+			return false; 
+		}
+		
+		if(board.get(x, y) == null){
 			return 'none';
 		}
-		if(board.get(x, y).getPiece().colour == colour){
+		if(board.get(x, y).getColour() == colour){
 			return 'player';
 		}else{
 			return 'opponent';
