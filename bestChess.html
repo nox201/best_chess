@@ -186,9 +186,6 @@
 		
 		function updateTakenPool(piece)
 		{
-			
-			console.log(piece);
-			
 			//PIECE VARIABLE HERE IS THE TAKEN PIECE, SO NEED THE OPPOSITE PLAYERS TAKEN POOL
 			if(piece.getColour() == 'black'){
 				//SHOW PIECES UNICODE CHARACTER IN TAKEN POOL
@@ -235,27 +232,93 @@
 			
 			//ALL VALID MOVES
 			let allValidMoves = emulatedBoard.getAllValidMoves(currentTurn);
-			//console.log(allValidMoves);
 			
-			//going to have to iterate through all the moves, make them, then do a get score on them, then revert back
+			let potentialMoves = [];
+			let chosenMove = null;
+			let currentBestMoveScore = board.getScore();
+			let moveScore = board.getScore();
 			
-			
-			//PICK A RANDOM VALID MOVE
-			let randomValidMove = allValidMoves[getRandomInt(allValidMoves.length)];
-			let randomMove = randomValidMove.moves[getRandomInt(randomValidMove.moves.length)];
-			
-			//CHECK FOR TAKING PIECE
-			if(board.get(randomMove.x, randomMove.y) != null){
-				if(board.get(randomMove.x, randomMove.y).getColour() != currentTurn){
-					//UPDATE TAKEN POOL
-					updateTakenPool(board.get(randomMove.x, randomMove.y));
+			for(let i = 0; i < allValidMoves.length; i++){
+				for(let j = 0; j < allValidMoves[i].moves.length; j++){
+					//GET BOARD SCORE FOR MOVE
+					moveScore = emulatedBoard.getScoreForMove(allValidMoves[i], allValidMoves[i].moves[j]);
+					
+					console.log(currentTurn + ' turn: ' + moveScore + ' score for moving ' + allValidMoves[i].piece.getName() + ' ' + allValidMoves[i].piece.getX() + ',' + allValidMoves[i].piece.getY() + ' to ' + allValidMoves[i].moves[j].x + ',' + allValidMoves[i].moves[j].y);
+					
+					//DETERMINE WHICH SCORE TO MAXIMISE - WHITE WANTS HIGHEST, BLACK WANTS LOWEST
+					if(currentTurn == 'white'){
+						//CHECK IF MOVE IS BETTER THAN PREVIOUSLY FOUND
+						if(moveScore > currentBestMoveScore){
+							//UPDATE BEST MOVE SCORE
+							currentBestMoveScore = moveScore;
+							//EMPTY ALL PREVIOUS POTENTIAL MOVES AND ADD NEW ONE
+							potentialMoves = [];
+							potentialMoves.push({'piece': allValidMoves[i].piece, 'move': allValidMoves[i].moves[j]});
+						}else{
+							if(moveScore == currentBestMoveScore){
+								//MOVE TIES CURRENT BEST MOVE SCORE, ADD TO POTENTIAL MOVES
+								potentialMoves.push({'piece': allValidMoves[i].piece, 'move': allValidMoves[i].moves[j]});
+							}
+						}
+					}else{
+						if(moveScore < currentBestMoveScore){
+							//UPDATE BEST MOVE SCORE
+							currentBestMoveScore = moveScore;
+							//EMPTY ALL PREVIOUS POTENTIAL MOVES AND ADD NEW ONE
+							potentialMoves = [];
+							potentialMoves.push({'piece': allValidMoves[i].piece, 'move': allValidMoves[i].moves[j]});
+						}else{
+							if(moveScore == currentBestMoveScore){
+								potentialMoves.push({'piece': allValidMoves[i].piece, 'move': allValidMoves[i].moves[j]});
+							}
+						}
+					}
+					//console.log('Chosen Move with a score of ' + currentBestMoveScore + ': ' + emulatedBoard.getScoreForMove(allValidMoves[i], allValidMoves[i].moves[j]));
 				}
 			}
 			
+			console.log('POTENTIAL MOVES LENGTH: ' + potentialMoves.length);
+			
+			//CHECK HOW MANY POTENTIAL MOVES (MOVES THAT HAVE THE SAME SCORE)
+			if(potentialMoves.length > 1){
+				//PICK A RANDOM POTENTIAL MOVE
+				chosenMove = potentialMoves[getRandomInt(potentialMoves.length)];
+			}else{
+				chosenMove = potentialMoves[0];
+			}
+			
+			//CHECK FOR TAKING PIECE
+			if(board.get(chosenMove.move.x, chosenMove.move.y) != null){
+				if(board.get(chosenMove.move.x, chosenMove.move.y).getColour() != currentTurn){
+					//UPDATE TAKEN POOL
+					updateTakenPool(board.get(chosenMove.move.x, chosenMove.move.y));
+				}
+			}
+			
+			//LOG
+			//console.log(chosenMove);
+			
 			//REMOVE PIECE FROM CURRENT SQUARE
-			emulatedBoard.set(randomValidMove.piece.getX(), randomValidMove.piece.getY(), null);
+			emulatedBoard.set(chosenMove.piece.getX(), chosenMove.piece.getY(), null);
 			//PLACE PIECE IN NEW SQUARE
-			emulatedBoard.set(randomMove.x, randomMove.y, randomValidMove.piece);
+			emulatedBoard.set(chosenMove.move.x, chosenMove.move.y, chosenMove.piece);
+			
+			//PICK A RANDOM VALID MOVE
+			//let randomValidMove = allValidMoves[getRandomInt(allValidMoves.length)];
+			//let randomMove = randomValidMove.moves[getRandomInt(randomValidMove.moves.length)];
+			
+			//CHECK FOR TAKING PIECE
+			//if(board.get(randomMove.x, randomMove.y) != null){
+				//if(board.get(randomMove.x, randomMove.y).getColour() != currentTurn){
+					//UPDATE TAKEN POOL
+					//updateTakenPool(board.get(randomMove.x, randomMove.y));
+				//}
+			//}
+			
+			//REMOVE PIECE FROM CURRENT SQUARE
+			//emulatedBoard.set(randomValidMove.piece.getX(), randomValidMove.piece.getY(), null);
+			//PLACE PIECE IN NEW SQUARE
+			//emulatedBoard.set(randomMove.x, randomMove.y, randomValidMove.piece);
 			
 			//POPULATE THE MAIN BOARD WITH MY NEW STATE
 			board.populateBoard(emulatedBoard.getStateCopy());

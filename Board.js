@@ -37,6 +37,60 @@ class Board {
 		return allValidMoves;
 	}
 	
+	getScore = function()
+	{
+		let score = 0;
+		//CALCULATE SCORE OF BOARD IN CURRENT STATE
+		this.getState().forEach((x) => {
+			x.forEach((y) => {
+				if(y != null){
+					//console.log('Piece ' + y.getName() + ' score: ' + y.getScore());
+					score += y.getScore();
+				}
+			})
+		});
+		return score;
+	}
+	
+	getScoreForMove = function(validMove, move)
+	{
+		let score = 0;
+		//convienience variable
+		let piece = validMove.piece;
+		let takenPiece = null;
+		
+		//REMOVE PIECE FROM CURRENT SQUARE
+		this.set(piece.getX(), piece.getY(), null);
+		//CHECK FOR TAKING PIECE
+		if(this.get(move.x, move.y) != null){
+			//STORE TAKEN PIECE
+			takenPiece = this.get(move.x, move.y);
+		}
+		//PLACE PIECE IN NEW SQUARE
+		this.set(move.x, move.y, piece);
+		
+		//CALCULATE SCORE OF BOARD IN CURRENT STATE
+		this.getState().forEach((x) => {
+			x.forEach((y) => {
+				if(y != null){
+					//console.log('Piece ' + y.getName() + ' score: ' + y.getScore());
+					score += y.getScore();
+				}
+			})
+		});
+		
+		//UNDO MOVE
+		this.set(piece.getX(), piece.getY(), piece);
+		if(takenPiece == null){
+			this.set(move.x, move.y, null);
+		}else{
+			this.set(move.x, move.y, takenPiece);
+		}
+		
+		//RETURN WHOLE BOARD SCORE
+		return score;
+	}
+	
 	//RETURNS AN ARRAY REPRESENTING THE CURRENT POSITION OF ALL PIECES ON THE BOARD
 	//Should this just return the whole squares[]?
 	getState = function()
