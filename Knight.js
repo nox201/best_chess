@@ -1,64 +1,63 @@
 class Knight extends Piece {
-	constructor(plane, colour){
-		super(plane, colour);
+	constructor(colour){
+		super(colour);
 	}
 	
 	name = 'Knight';
 	
-	getValidMoves = function(boardState){
+	getValidMoves = function(board, x, y){
 		
 		//INIT
+		this.setPosition(x, y);
 		let validMoves = [];
 		let skip = false;
 		
-		//this.log();
-		
 		//NNE
-		if(this.row < 7 && this.column > 1){
-			if(this.isOccupied(boardState, this.row + 1, this.column - 2, this.colour) != 'player'){
-				validMoves.push({'row': this.row + 1, 'column': this.column - 2});
+		if(this.x < 7 && this.y > 1){
+			if(this.isOccupied(board, this.x + 1, this.y - 2, this.colour) != 'player'){
+				validMoves.push({'x': this.x + 1, 'y': this.y - 2});
 			}
 		}
 		//ENE
-		if(this.row < 6 && this.column > 0){
-			if(this.isOccupied(boardState, this.row + 2, this.column - 1, this.colour) != 'player'){
-				validMoves.push({'row': this.row + 2, 'column': this.column - 1});
+		if(this.x < 6 && this.y > 0){
+			if(this.isOccupied(board, this.x + 2, this.y - 1, this.colour) != 'player'){
+				validMoves.push({'x': this.x + 2, 'y': this.y - 1});
 			}
 		}
 		//ESE
-		if(this.row < 6 && this.column < 7){
-			if(this.isOccupied(boardState, this.row + 2, this.column + 1, this.colour) != 'player'){
-				validMoves.push({'row': this.row + 2, 'column': this.column + 1});
+		if(this.x < 6 && this.y < 7){
+			if(this.isOccupied(board, this.x + 2, this.y + 1, this.colour) != 'player'){
+				validMoves.push({'x': this.x + 2, 'y': this.y + 1});
 			}
 		}
 		//SSE
-		if(this.row < 7 && this.column < 6){
-			if(this.isOccupied(boardState, this.row + 1, this.column + 2, this.colour) != 'player'){
-				validMoves.push({'row': this.row + 1, 'column': this.column + 2});
+		if(this.x < 7 && this.y < 6){
+			if(this.isOccupied(board, this.x + 1, this.y + 2, this.colour) != 'player'){
+				validMoves.push({'x': this.x + 1, 'y': this.y + 2});
 			}
 		}
 		//SSW
-		if(this.row > 0 && this.column < 6){
-			if(this.isOccupied(boardState, this.row -1, this.column + 2, this.colour) != 'player'){
-				validMoves.push({'row': this.row - 1, 'column': this.column + 2});
+		if(this.x > 0 && this.y < 6){
+			if(this.isOccupied(board, this.x -1, this.y + 2, this.colour) != 'player'){
+				validMoves.push({'x': this.x - 1, 'y': this.y + 2});
 			}
 		}
 		//WSW
-		if(this.row > 1 && this.column < 7){
-			if(this.isOccupied(boardState, this.row - 2, this.column + 1, this.colour) != 'player'){
-				validMoves.push({'row': this.row - 2, 'column': this.column + 1});
+		if(this.x > 1 && this.y < 7){
+			if(this.isOccupied(board, this.x - 2, this.y + 1, this.colour) != 'player'){
+				validMoves.push({'x': this.x - 2, 'y': this.y + 1});
 			}
 		}
 		//WNW
-		if(this.row > 1 && this.column > 0){
-			if(this.isOccupied(boardState, this.row - 2, this.column - 1, this.colour) != 'player'){
-				validMoves.push({'row': this.row - 2, 'column': this.column - 1});
+		if(this.x > 1 && this.y > 0){
+			if(this.isOccupied(board, this.x - 2, this.y - 1, this.colour) != 'player'){
+				validMoves.push({'x': this.x - 2, 'y': this.y - 1});
 			}
 		}
 		//NNW
-		if(this.row > 0 && this.column > 1){
-			if(this.isOccupied(boardState, this.row - 1, this.column - 2, this.colour) != 'player'){
-				validMoves.push({'row': this.row - 1, 'column': this.column - 2});
+		if(this.x > 0 && this.y > 1){
+			if(this.isOccupied(board, this.x - 1, this.y - 2, this.colour) != 'player'){
+				validMoves.push({'x': this.x - 1, 'y': this.y - 2});
 			}
 		}
 		

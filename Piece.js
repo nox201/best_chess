@@ -1,29 +1,47 @@
 class Piece {
-	constructor(plane, colour){
-		this.plane = plane;
+	constructor(colour){
 		this.colour = colour;
 	}
-	plane;
 	colour;
-	row;
-	column;
+	x;
+	y;
 	moveset;
 	name = 'Generic Piece';
 	
-	setRow = function(row){
-		this.row = row;
+	setX = function(x){
+		this.x = x;
 	}
-	setColumn = function(column){
-		this.column = column;
+	getX = function(){
+		return this.x;
+	}
+	setY = function(y){
+		this.y = y;
+	}
+	getY = function(y){
+		return this.y;
+	}
+	setPosition(x, y){
+		this.x = x;
+		this.y = y;
+	}
+	getPosition(){
+		return {'x' : this.x, 'y' : this.y};
 	}
 	
 	getName = function(){
 		return this.name;
 	}
+	getColour = function(){
+		return this.colour;
+	}
+	
+	//function handleClick(){
+	//	alert('Piece objects handleClick called');
+	//}
 	
 	//GENERIC LOGGING FUNCTION
 	log = function(){
-		console.log(this.colour + ' ' + this.name + ' at Row: ' + this.row + ', Column: ' + this.column);
+		console.log(this.colour + ' ' + this.name + ' at X: ' + this.x + ', Y: ' + this.y);
 	}
 	
 	//UTILITY FUNCTION TO RETURN THE PIECES UNICODE CHARACTER
@@ -47,30 +65,48 @@ class Piece {
 		return fontUnicodeCharacters[this.colour][this.name];
 	}
 	
-	
-	draw = function(row, column, squareSize){
-		//DRAW UNICODE CHARACTER
-		this.plane.fillStyle = 'black';
-		this.plane.fillText(this.getUnicode(), squareSize * row + (squareSize / 2), squareSize * column + squareSize);
+	//GET THE PIECES SCORE
+	getScore = function(){
+		let scores = [];
+		scores['white'] = [];
+		scores['white']['Bishop'] = 30;
+		scores['white']['Castle'] = 50;
+		scores['white']['King'] = 900;
+		scores['white']['Knight'] = 30;
+		scores['white']['Pawn'] = 10;
+		scores['white']['Queen'] = 90;
+		scores['black'] = [];
+		scores['black']['Bishop'] = -30;
+		scores['black']['Castle'] = -50;
+		scores['black']['King'] = -900;
+		scores['black']['Knight'] = -30;
+		scores['black']['Pawn'] = -10;
+		scores['black']['Queen'] = -90;
+		//RETURN UNICODE CHARACTER
+		return scores[this.colour][this.name];
 	}
 	
+
 	getValidMoves = function(boardState){
 		return [];
 	};
 	
-	//should this function live elsewhere?
-	isOccupied(boardState, row, column, colour){
-		let occupied = 'none';
-		//console.log(boardState);
-		for(let i = 0; i < boardState.length; i++){
-			if(boardState[i].row == row && boardState[i].column == column){
-				if(boardState[i].colour == colour){
-					occupied = 'player';
-				}else{
-					occupied = 'opponent';
-				}
-			}
+	isOccupied = function(board, x, y, colour){
+		//CHECK THAT SQUARE IS ON THE BOARD
+		if(x < 0 || x > 7 || y < 0 || y > 7){
+			//LOG OUT OF BOUNDS
+			//console.log('isOccupied function attempted to search out of bounds: ' + x + ', ' + y);
+			return false; 
 		}
-		return occupied;
+		
+		if(board.get(x, y) == null){
+			return 'none';
+		}
+		if(board.get(x, y).getColour() == colour){
+			return 'player';
+		}else{
+			return 'opponent';
+		}
 	}
+	
 }
