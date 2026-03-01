@@ -35,10 +35,6 @@ class Piece {
 		return this.colour;
 	}
 	
-	//function handleClick(){
-	//	alert('Piece objects handleClick called');
-	//}
-	
 	//GENERIC LOGGING FUNCTION
 	log = function(){
 		console.log(this.colour + ' ' + this.name + ' at X: ' + this.x + ', Y: ' + this.y);
@@ -86,6 +82,13 @@ class Piece {
 		return scores[this.colour][this.name];
 	}
 	
+	
+	/*draw = function(x, y, squareSize){
+		//DRAW UNICODE CHARACTER
+		this.plane.fillStyle = 'black';
+		this.plane.fillText(this.getUnicode(), squareSize * x + (squareSize / 2), squareSize * y + squareSize);
+	}*/
+	
 
 	getValidMoves = function(boardState){
 		return [];
@@ -109,4 +112,19 @@ class Piece {
 		}
 	}
 	
+	//should this function live elsewhere?
+	/* isOccupied(board, x, y, colour){
+		let occupied = 'none';
+		//console.log(boardState);
+		for(let i = 0; i < boardState.length; i++){
+			if(boardState[i].x == x && boardState[i].y == y){
+				if(boardState[i].colour == colour){
+					occupied = 'player';
+				}else{
+					occupied = 'opponent';
+				}
+			}
+		}
+		return occupied;
+	} */
 }

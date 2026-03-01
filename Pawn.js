@@ -61,5 +61,10 @@ class Pawn extends Piece {
 		}
 		return validMoves;
 	}
+	
+	hasMoved = function()
+	{
+		this.firstMove = false;
+	}
 
 }

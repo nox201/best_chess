@@ -92,7 +92,18 @@ class Square {
 			//GET CURRENTLY SELECTED SQUARE
 			let currentlySelected = this.board.getSelected();
 			
+			
+			//* This is where the whole thing goes wrong
+			// There is no way I can find where I can duplicate or clone my board state without operating on the real board that I'm going to render
+			// Any reference to the squares array in the board causes the actual squares in the board class to update
+			// This means that when I try and 'emulate' moves, and create a board state I want to work with, but potentially discard, I'm ALWAYS making those changes to the real board
+			// This is shit and not what I want. I've tried to make a new object and return that, it doesn't work. I can't use strcuturedClone because I can't clone a canvas object
+			// And I can't use JSON.stringify because I have object references in Square, and JSON doesn't support them so fails. 
+			// Maybe I need a seperate 'State' object that holds the position of all the pieces, but afaik that's basically what I'm doing - i'd just have the squares array wrapped in an object?
+			
 			//CLONE CURRENT BOARD STATE
+			//let emulatedState = this.board.getState();
+			//could this work?
 			let emulatedState = this.board.getStateCopy();
 			
 			//EMULATE ADDING PIECE TO HIGHLIGHTED SQUARE
@@ -105,8 +116,10 @@ class Square {
 			emulatedBoard.populateBoard(emulatedState.getSquares());
 			
 			//DEBUG
-			//emulatedBoard.debug();
-
+			emulatedBoard.debug();
+			
+			//this.board.debug();
+			
 			//if(emulatedBoard.isInCheck()){
 				//PREVENT MOVE, NOTIFY USER
 				

@@ -178,12 +178,17 @@
 			//DETERMINE WHICH SQUARE HAS BEEN CLICKED
 			let x = Math.floor(event.offsetX / squareSize);
 			let y = Math.floor(event.offsetY / squareSize);
-			//PASS EVENT TO OBJECT
-			//to do - rebuild this?
-			//currently the board.get method returns a Castle/Bishop/Pawn etc object. So could bind to Piece? 
-			//squares[row][column].handleClick(event);
-			//board.get(x, y).handleClick(event);
-			//console.log(board.get(0,0));
+			//BIND CLICK HANDLER TO BOARD
+			postClickActions = board.handleClick(event, x, y);
+			//REDRAW BOARD
+			renderer.draw(board);
+			//CHECK FOR POST CLICK ACTIONS
+			if(postClickActions.piece != false){
+				updateTakenPool(postClickActions.piece);
+			}
+			if(postClickActions.swapTurn != false){
+				swapTurn();
+			}
 		}
 		
 		function updateTakenPool(piece)
@@ -385,7 +390,7 @@
 			}
 			
 			//NOTE - ITS USEFUL THAT I CURRENTLY ERROR WHEN I DON'T HAVE A CHOSEN MOVE (IT SHOWS MY STUFF ISN'T WORKING RIGHT) BUT ONCE EVERYTHINGS WORKING PERFECTLY I COULD JUST DO A RANDOM VALIDMOVE IF CHOSEN MOVE IS EMPTY?
-			console.log(currentTurn + ' Chosen Move score: ' + currentBestMoveScore + ' - moves ' + chosenMove.piece.getX() + ',' + chosenMove.piece.getY() + ' to ' + chosenMove.move.x + ',' + chosenMove.move.y);
+			console.log(currentTurn + ' Chosen Move score: ' + currentBestMoveScore + ' - moves ' + chosenMove.piece.name + ' from ' + chosenMove.piece.getX() + ',' + chosenMove.piece.getY() + ' to ' + chosenMove.move.x + ',' + chosenMove.move.y);
 			
 			//CHECK FOR TAKING PIECE
 			if(board.get(chosenMove.move.x, chosenMove.move.y) != null){
@@ -394,10 +399,7 @@
 					updateTakenPool(board.get(chosenMove.move.x, chosenMove.move.y));
 				}
 			}
-			
-			//LOG
-			//console.log(chosenMove);
-			
+
 			//REMOVE PIECE FROM CURRENT SQUARE
 			emulatedBoard.set(chosenMove.piece.getX(), chosenMove.piece.getY(), null);
 			//PLACE PIECE IN NEW SQUARE
@@ -422,6 +424,12 @@
 			
 			//POPULATE THE MAIN BOARD WITH MY NEW STATE
 			board.populateBoard(emulatedBoard.getStateCopy());
+			
+			//CHECK FOR PAWN
+			if(chosenMove.piece.getName() == 'Pawn'){
+				//SET PAWN HAS MOVED
+				board.get(chosenMove.move.x, chosenMove.move.y).hasMoved();
+			}
 			
 			//REDRAW
 			renderer.draw(board);
