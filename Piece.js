@@ -89,6 +89,7 @@ class Piece {
 		this.plane.fillText(this.getUnicode(), squareSize * x + (squareSize / 2), squareSize * y + squareSize);
 	}*/
 	
+
 	getValidMoves = function(boardState){
 		return [];
 	};

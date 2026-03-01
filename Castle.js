@@ -5,21 +5,22 @@ class Castle extends Piece {
 	
 	name = 'Castle';
 	
-	getValidMoves = function(boardState){
+	getValidMoves = function(board, x, y){
 		
 		//INIT
+		this.setPosition(x, y);
 		let validMoves = [];
 		let skip = false;
 		
 		//DONT BOTHER CHECKING IF CASTLE IS AGAINST AN EDGE
-		if(this.row < 7){
+		if(this.x < 7){
 			//ITERATE BOARD
-			for(let i = this.row + 1; i <= 7; i++){
+			for(let i = this.x + 1; i <= 7; i++){
 				//SWITCH IS OCCUPIED RESULT
-				switch(this.isOccupied(boardState, i, this.column, this.colour)){
+				switch(this.isOccupied(board, i, this.y, this.colour)){
 					case 'none':
 						//VALID MOVE - EMPTY SPACE
-						validMoves.push({'row': i, 'column': this.column});
+						validMoves.push({'x': i, 'y': this.y});
 					break;
 					case 'player':
 						//INVALID MOVE - PLAYERS PIECES
@@ -27,7 +28,7 @@ class Castle extends Piece {
 					break;
 					case 'opponent':
 						//VALID MOVE - OPPONENTS PIECE
-						validMoves.push({'row': i, 'column': this.column});
+						validMoves.push({'x': i, 'y': this.y});
 						//BUT DONT CONTINUE CHECKING AFTER THIS, CASTLES CANT JUMP
 						skip = true;
 					break;
@@ -41,17 +42,17 @@ class Castle extends Piece {
 			skip = false;
 		}
 		
-		if(this.row > 0){
-			for(i = this.row - 1; i >= 0; i--){
-				switch(this.isOccupied(boardState, i, this.column, this.colour)){
+		if(this.x > 0){
+			for(let i = this.x - 1; i >= 0; i--){
+				switch(this.isOccupied(board, i, this.y, this.colour)){
 					case 'none':
-						validMoves.push({'row': i, 'column': this.column});
+						validMoves.push({'x': i, 'y': this.y});
 					break;
 					case 'player':
 						skip = true;
 					break;
 					case 'opponent':
-						validMoves.push({'row': i, 'column': this.column});
+						validMoves.push({'x': i, 'y': this.y});
 						skip = true;
 					break;
 				}
@@ -62,17 +63,17 @@ class Castle extends Piece {
 			skip = false;
 		}
 		
-		if(this.column < 7){
-			for(i = this.column + 1; i <= 7; i++){
-				switch(this.isOccupied(boardState, this.row, i, this.colour)){
+		if(this.y < 7){
+			for(let i = this.y + 1; i <= 7; i++){
+				switch(this.isOccupied(board, this.x, i, this.colour)){
 					case 'none':
-						validMoves.push({'row': this.row, 'column': i});
+						validMoves.push({'x': this.x, 'y': i});
 					break;
 					case 'player':
 						skip = true;
 					break;
 					case 'opponent':
-						validMoves.push({'row': this.row, 'column': i});
+						validMoves.push({'x': this.x, 'y': i});
 						skip = true;
 					break;
 				}
@@ -83,17 +84,17 @@ class Castle extends Piece {
 			skip = false;
 		}
 		
-		if(this.column > 0){
-			for(i = this.column - 1; i >= 0; i--){
-				switch(this.isOccupied(boardState, this.row, i, this.colour)){
+		if(this.y > 0){
+			for(let i = this.y - 1; i >= 0; i--){
+				switch(this.isOccupied(board, this.x, i, this.colour)){
 					case 'none':
-						validMoves.push({'row': this.row, 'column': i});
+						validMoves.push({'x': this.x, 'y': i});
 					break;
 					case 'player':
 						skip = true;
 					break;
 					case 'opponent':
-						validMoves.push({'row': this.row, 'column': i});
+						validMoves.push({'x': this.x, 'y': i});
 						skip = true;
 					break;
 				}
@@ -106,4 +107,5 @@ class Castle extends Piece {
 		
 		return validMoves;
 	}
+
 }
