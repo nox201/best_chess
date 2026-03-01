@@ -23,6 +23,7 @@ class Renderer{
 		//ITERATE STATE
 		for(let i = 0; i < state.length; i++){
 			for(let j = 0; j < state[i].length; j++){
+				
 				//DETERMINE SQUARE COLOUR
 				if(j != 0){
 					if(colour == 'lightGrey'){
@@ -31,8 +32,17 @@ class Renderer{
 						colour = 'lightGrey';
 					}
 				}
-				//DRAW SQUARE
-				plane.fillStyle = colour;
+				
+				//CHECK FOR SELECTED
+				if(board.isSelected(i, j)){
+					plane.fillStyle = 'green';
+				}else if(board.isHighlighted(i, j)){
+					plane.fillStyle = 'lightgreen';
+				}else{
+					//DRAW DEFAULT SQUARE
+					plane.fillStyle = colour;
+				}
+				//FILL RECT
 				plane.fillRect(squareSize * i, squareSize * j, squareSize, squareSize);
 				
 				//DRAW PIECE

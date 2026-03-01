@@ -5,6 +5,7 @@ class Board {
 	
 	squares = [];
 	selected = {};
+	highlighted = [];
 	
 	//GET SQUARE METHOD	
 	get = function(x, y)
@@ -79,6 +80,10 @@ class Board {
 			})
 		});
 		
+		//console.log('getScoreForMove');
+		//this.debug();
+		//console.log(score)
+		
 		//UNDO MOVE
 		this.set(piece.getX(), piece.getY(), piece);
 		if(takenPiece == null){
@@ -115,7 +120,63 @@ class Board {
 				}
 			}
 		}
+		//OUTPUT STATE TO CONSOLE
+		//this.debug();
+		
 		return state;
+	}
+	
+	//---------
+	//handle click stuff
+	//---------
+	
+	handleClick = function(event, x, y)
+	{
+		//INIT RETURN VALUES
+		let ret = {}; 
+		ret.piece = false;
+		ret.swapTurn = false;
+		
+		//CHECK FOR HIGHLIGHTED PIECE
+		if(this.isHighlighted(x, y)){
+			
+			//SPECIAL CASE FOR PAWNS - SET FIRST MOVE
+			if(this.get(this.getSelected().x, this.getSelected().y).getName() == 'Pawn'){
+				this.get(this.getSelected().x, this.getSelected().y).hasMoved();
+			}
+
+			//MAKE MOVE - CHECK FOR TAKING PIECE
+			if(this.get(x, y) != null){
+				if(this.get(x, y).getColour() != currentTurn){
+					//CANT CALL UPDATETAKENPOOL FROM HERE, SO RETURN PIECE BACK TO MAIN SCRIPT
+					ret.piece = this.get(x, y);
+				}
+			}
+			//PLACE PIECE IN NEW SQUARE
+			this.set(x, y, this.get(this.getSelected().x, this.getSelected().y));
+			//REMOVE PIECE FROM CURRENT SQUARE
+			this.set(this.getSelected().x, this.getSelected().y, null);
+			//MOVE MADE, DESELECT
+			this.deselectEverything();
+			//SET SWAP TURN
+			ret.swapTurn = true;
+			
+		//CHECK FOR NEW PIECE SELECTED	
+		}else if(this.get(x, y) != null){
+			//DESELECT EVERYTHING
+			this.deselectEverything();
+			//SET SQUARE AS SELECTED
+			this.setSelected(x, y);
+			//SET POTENTIAL MOVE AS HIGHLIGHTED
+			this.get(x, y).getValidMoves(this, x, y).forEach((move) => {
+				this.addHighlighted(move.x, move.y);
+			});
+		}else{
+			//EMPTY SQUARE SELECTED
+			this.deselectEverything();
+		}
+		//RETURN VALUES
+		return ret;
 	}
 	
 	//SELECTED SQUARE FUNCTIONS
@@ -123,19 +184,49 @@ class Board {
 	{
 		this.selected = {'x': x, 'y': y};
 	}
+	isSelected = function(x, y)
+	{
+		if(this.selected.x == x && this.selected.y == y){
+			return true;
+		}else{
+			return false;
+		}
+	}
 	getSelected = function()
 	{
-		return this.get(this.selected.x, this.selected.y);
+		return this.selected;
+	}
+	emptySelected = function()
+	{
+		this.selected = false;
+	}
+	//HIGHLIGHTED SQUARE FUNCTIONS
+	addHighlighted = function(x, y)
+	{
+		this.highlighted.push({'x': x, 'y': y});
+	}
+	isHighlighted = function(x, y)
+	{
+		let ret = false;
+		this.getHighlighted().forEach((square) => {
+			if(square.x == x && square.y == y){
+				ret = true;
+			}
+		});
+		return ret; 
+	}
+	getHighlighted = function()
+	{
+		return this.highlighted;
+	}
+	emptyHighlighted = function()
+	{
+		this.highlighted = [];
 	}
 	deselectEverything = function()
 	{
-		//ITERATE SQUARES
-		this.squares.forEach((x) => {
-			x.forEach((y) => {
-				y.selected = false;
-				y.highlighted = false;
-			})
-		});
+		this.emptySelected();
+		this.emptyHighlighted();
 	}
 
 	//POPUALTE THE BOARD WITH A CUSTOM STATE OR IF NONE PROVIDED, A FRESH GAME
@@ -220,7 +311,11 @@ class Board {
 		for(let i = 0; i < this.squares.length; i++){
 			for(let j = 0; j < this.squares[i].length; j++){
 				if(this.squares[j][i] != null){
-					log = log + '[' + this.squares[j][i].getName().charAt(0) + ']';
+					if(this.squares[j][i].getColour() == 'white'){
+						log = log + '[' + this.squares[j][i].getName().charAt(0).toLowerCase() + ']';
+					}else{
+						log = log + '[' + this.squares[j][i].getName().charAt(0) + ']';
+					}
 				}else{
 					log = log + '[ ]';
 				}
