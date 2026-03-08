@@ -6,6 +6,8 @@ class Board {
 	squares = [];
 	selected = {};
 	highlighted = [];
+	warning = [];
+	previousState;
 	
 	//GET SQUARE METHOD	
 	get = function(x, y)
@@ -37,6 +39,31 @@ class Board {
 		
 		return allValidMoves;
 	}
+	
+	makeMove = function(piece, move)
+	{
+		//INIT
+		let takenPiece = null;
+		//STORE CURRENT STATE
+		this.previousState = this.getStateCopy();
+		//REMOVE PIECE FROM CURRENT SQUARE
+		this.set(piece.getX(), piece.getY(), null);
+		//CHECK FOR TAKING PIECE
+		if(this.get(move.x, move.y) != null){
+			//STORE TAKEN PIECE
+			takenPiece = this.get(move.x, move.y);
+		}
+		//PLACE PIECE IN NEW SQUARE
+		this.set(move.x, move.y, piece);
+		//RETURN TAKEN PIECE
+		return takenPiece;
+	}
+	
+	undo = function()
+	{
+		this.populateBoard(this.previousState);
+	}
+	
 	
 	getScore = function()
 	{
@@ -127,6 +154,63 @@ class Board {
 	}
 	
 	//---------
+	//CHECK/MATE FUNCTIONS
+	//---------
+	
+	isInCheck = function(){
+		//INIT
+		let checked = false;
+		let allMoves;
+		//ITERATE ALL MOVES FOR OPPONENT
+		if(currentTurn == 'white'){
+			allMoves = this.getAllValidMoves('black');
+		}else{
+			allMoves = this.getAllValidMoves('white');
+		}
+		//ITERATE ALL OPPONENTS MOVES
+		allMoves.forEach((piece) => {
+			piece.moves.forEach((move) => {
+				if(this.get(move.x, move.y) != null){
+					if(this.get(move.x, move.y).getName() == 'King'){
+						checked = true;
+					}
+				}
+			});
+		});
+		//RETURN CHECKED
+		return checked;
+	}
+	
+	//this dupes a lot of the same code as isInCheck but does a decent seperation of concerns
+	getCheckMove = function(){
+		//INIT
+		let checkMove = false;
+		let checkPiece = false;
+		let checkMoves = [];
+		let allMoves;
+		//ITERATE ALL MOVES FOR OPPONENT
+		if(currentTurn == 'white'){
+			allMoves = this.getAllValidMoves('black');
+		}else{
+			allMoves = this.getAllValidMoves('white');
+		}
+		//ITERATE ALL OPPONENTS MOVES
+		allMoves.forEach((piece) => {
+			piece.moves.forEach((move) => {
+				if(this.get(move.x, move.y) != null){
+					console.log(this.get(move.x, move.y).getName());
+					if(this.get(move.x, move.y).getName() == 'King'){
+						checkPiece = piece;
+						checkMoves.push(move);
+					}
+				}
+			});
+		});
+		//RETURN CHECK PIECE AND KING LOCATION
+		return {'piece': checkPiece, 'moves': checkMoves};
+	}
+	
+	//---------
 	//handle click stuff
 	//---------
 	
@@ -136,17 +220,43 @@ class Board {
 		let ret = {}; 
 		ret.piece = false;
 		ret.swapTurn = false;
+		ret.inCheck = false;
 		
 		//CHECK FOR HIGHLIGHTED PIECE
 		if(this.isHighlighted(x, y)){
 			
-			//SPECIAL CASE FOR PAWNS - SET FIRST MOVE
-			if(this.get(this.getSelected().x, this.getSelected().y).getName() == 'Pawn'){
-				this.get(this.getSelected().x, this.getSelected().y).hasMoved();
+			let pawnMoved = false;
+			//SET FLAG - MAKE MOVE REMOVES THE SELECTED PIECE, SO NEED TO STORE THIS TO UPDATE LATER
+			if(this.getSelectedPiece().getName() == 'Pawn'){
+				pawnMoved = true;
 			}
 
+			//MAKE MOVE
+			let move = {'x':x, 'y':y};
+			let takenPiece = this.makeMove(this.getSelectedPiece(), move);
+
+			//CHECK FOR CHECK
+			if(this.isInCheck()){
+				//UNDO MOVE
+				this.undo();
+				//SET CHECK WARNING
+				ret.inCheck = true;
+			}else{
+				//NOT IN CHECK, CHECK IF PIECE TAKEN
+				if(takenPiece != null){
+					//SET PIECE
+					ret.piece = takenPiece;
+				}
+				//SET SWAP TURN
+				ret.swapTurn = true;
+				//CHECK IF ITS A PAWN THATS MOVED
+				if(pawnMoved){
+					this.get(x, y).hasMoved();
+				}
+			}
+				
 			//MAKE MOVE - CHECK FOR TAKING PIECE
-			if(this.get(x, y) != null){
+			/* if(this.get(x, y) != null){
 				if(this.get(x, y).getColour() != currentTurn){
 					//CANT CALL UPDATETAKENPOOL FROM HERE, SO RETURN PIECE BACK TO MAIN SCRIPT
 					ret.piece = this.get(x, y);
@@ -156,10 +266,14 @@ class Board {
 			this.set(x, y, this.get(this.getSelected().x, this.getSelected().y));
 			//REMOVE PIECE FROM CURRENT SQUARE
 			this.set(this.getSelected().x, this.getSelected().y, null);
+			
 			//MOVE MADE, DESELECT
 			this.deselectEverything();
 			//SET SWAP TURN
-			ret.swapTurn = true;
+			ret.swapTurn = true; */
+			
+			//DESELECT EVERYTHING
+			this.deselectEverything();
 			
 		//CHECK FOR NEW PIECE SELECTED	
 		}else if(this.get(x, y) != null){
@@ -196,10 +310,15 @@ class Board {
 	{
 		return this.selected;
 	}
+	getSelectedPiece = function()
+	{
+		return this.get(this.getSelected().x, this.getSelected().y);
+	}
 	emptySelected = function()
 	{
 		this.selected = false;
 	}
+	
 	//HIGHLIGHTED SQUARE FUNCTIONS
 	addHighlighted = function(x, y)
 	{
@@ -223,6 +342,31 @@ class Board {
 	{
 		this.highlighted = [];
 	}
+	
+	//WARNING SQUARE FUNCTIONS
+	addWarning = function(x, y)
+	{
+		this.warning.push({'x': x, 'y': y});
+	}
+	isWarning = function(x, y)
+	{
+		let ret = false;
+		this.getWarning().forEach((square) => {
+			if(square.x == x && square.y == y){
+				ret = true;
+			}
+		});
+		return ret; 
+	}
+	getWarning = function()
+	{
+		return this.warning;
+	}
+	emptyWarning = function()
+	{
+		this.warning = [];
+	}
+	
 	deselectEverything = function()
 	{
 		this.emptySelected();

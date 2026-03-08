@@ -38,6 +38,8 @@ class Renderer{
 					plane.fillStyle = 'green';
 				}else if(board.isHighlighted(i, j)){
 					plane.fillStyle = 'lightgreen';
+				}else if(board.isWarning(i, j)){
+					plane.fillStyle = 'pink';
 				}else{
 					//DRAW DEFAULT SQUARE
 					plane.fillStyle = colour;

@@ -3,10 +3,8 @@
 <head>
 
 	<title>Bishops Castle</title>
-	<script src="State.js"></script>
 	<script src="Renderer.js"></script>
 	<script src="Board.js"></script>
-	<script src="Square.js"></script>
 	<script src="Piece.js"></script>
 	<script src="Pawn.js"></script>
 	<script src="Castle.js"></script>
@@ -69,10 +67,10 @@
 	}
 	
 	#whiteCheckDisplay {
-		display: none;
+		
 	}
 	#blackCheckDisplay {
-		display: none;
+		
 	}
 	#whiteTakenPool {
 		display: inline-block;
@@ -125,7 +123,7 @@
 			</div>
 			<div id="whiteTurnDisplay" class="dataContainer">
 				<span id="whiteTurnString">White's Move</span>
-				<!--<span id="whiteCheckDisplay">You are in Check</span>-->
+				<span id="whiteCheckDisplay"></span>
 			</div>
 			
 		</div>
@@ -141,7 +139,7 @@
 		
 		<div id="blackTurnDisplay" class="dataContainer inverted">
 			<span id="blackTurnString">Black's Move</span>
-			<!--<span id="blackCheckDisplay">You are in Check</span>-->
+			<span id="blackCheckDisplay"></span>
 		</div>
 		</div>
 		
@@ -153,16 +151,14 @@
 <script>
 
 	//TO-DO
-	//ai - https://www.freecodecamp.org/news/simple-chess-ai-step-by-step-1d55a9266977/
-	//ai - position evaluation
-	//ai - search tree
-	//ai - alpha-beta
-	//ai - improved evaluation function
-	//game controls - start new game, game win/lost state - including pawns firstMove logic, check and checkmate states
+	//ai - have the AI integrate with the check state - it currently ignores being in check 
+	//ai - improve the AI so it doesn't take such bad trades.
+	//ai - potentially upgrade the score stuff so that piece positioning impacts the moves score
+	//checkmate state
+	//game controls - start new game, game win/lost state
 	//css - style, title, alerts, maybe see if i can make the background colours change over time
 	//actual pieces - either images or proper drawings
-	//make the pieces in the taken pool jquery draggable()?
-	
+	//make the pieces in the taken pool jquery draggable for fun()?
 	
 	//INITALIZE VARIABLES
 	var boardContainer = document.getElementById('boardContainer');
@@ -218,8 +214,7 @@
 			let y = Math.floor(event.offsetY / squareSize);
 			//BIND CLICK HANDLER TO BOARD
 			postClickActions = board.handleClick(event, x, y);
-			//REDRAW BOARD
-			renderer.draw(board);
+			
 			//CHECK FOR POST CLICK ACTIONS
 			if(postClickActions.piece != false){
 				updateTakenPool(postClickActions.piece);
@@ -227,8 +222,33 @@
 			if(postClickActions.swapTurn != false){
 				swapTurn();
 			}
+			if(postClickActions.inCheck != false){
+				alert('you cannot move into check');
+			}
+			//CHECK FOR CHECK
+			if(board.isInCheck(currentTurn)){
+				//to-do - checkmate check
+				
+				//DISPLAY CHECK WARNING TO PLAYER
+				updateCheckWarning(currentTurn);
+				//ADD WARNING COLOURS TO BOARD - ATTACKING PIECE AND KING POSITION
+				let checkMove = board.getCheckMove();
+				board.addWarning(checkMove.moves[0].x, checkMove.moves[0].y);
+				board.addWarning(checkMove.piece.piece.x, checkMove.piece.piece.y);
+			}else{
+				//REMOVE ANY PREVIOUS CHECK BEHAVIOUR
+				board.emptyWarning();
+				updateCheckWarning(null);
+			}
+			//REDRAW BOARD
+			renderer.draw(board);
 		}
 		
+		//----------------------
+		//DISPLAY FUNCTIONS
+		//----------------------
+		
+		//TAKEN POOL
 		function updateTakenPool(piece)
 		{
 			//PIECE VARIABLE HERE IS THE TAKEN PIECE, SO NEED THE OPPOSITE PLAYERS TAKEN POOL
@@ -240,6 +260,27 @@
 			}
 		}
 		
+		//CHECK WARNING
+		function updateCheckWarning(currentTurn)
+		{
+			switch(currentTurn){
+				case 'white':
+					//SHOW PIECES UNICODE CHARACTER IN TAKEN POOL - SPACE IS REQUIRED AT THE END OTHERWISE THE STRING NEVER BREAKS ONTO A NEW LINE
+					document.getElementById('whiteCheckDisplay').innerHTML = 'You are in check!';
+					document.getElementById('blackCheckDisplay').innerHTML = '';
+				break;
+				case 'black':
+					document.getElementById('whiteCheckDisplay').innerHTML = '';
+					document.getElementById('blackCheckDisplay').innerHTML = 'You are in check!';
+				break;
+				default:
+					document.getElementById('whiteCheckDisplay').innerHTML = '';
+					document.getElementById('blackCheckDisplay').innerHTML = '';
+				break;
+			}
+		}
+		
+		//SWAP PLAYERS TURN
 		function swapTurn()
 		{
 			if(currentTurn == 'white'){
@@ -260,9 +301,6 @@
 		function getRandomInt(max) {
 			return Math.floor(Math.random() * max);
 		}
-
-		//SWAP TURN WHEN STARTING GAME
-		swapTurn();
 		
 		//----------------------
 		//AI STUFF
@@ -481,7 +519,8 @@
 			
 		}
 		
-
+		//SWAP TURN WHEN STARTING GAME
+		swapTurn();
 	
 	//close onload function
 	}
