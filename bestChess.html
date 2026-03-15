@@ -15,7 +15,7 @@
 	
 	<style>
 		
-	.background {
+	#background {
 		--s: 61px; /* control the size*/
 		--c1: #b2b2b2;
 		--c2: #ffffff;
@@ -110,7 +110,7 @@
 	
 	</style>
 </head>
-<body class="background">
+<body id="background">
 
 	<div class="main">
 	
@@ -151,14 +151,21 @@
 <script>
 
 	//TO-DO
-	//ai - have the AI integrate with the check state - it currently ignores being in check 
+	//fix bug - when two kings meet, the getCheckingPiece method fails 
 	//ai - improve the AI so it doesn't take such bad trades.
 	//ai - potentially upgrade the score stuff so that piece positioning impacts the moves score
 	//checkmate state
 	//game controls - start new game, game win/lost state
-	//css - style, title, alerts, maybe see if i can make the background colours change over time
+	//css - style, title, alerts
+	//background - finish making the background change colour - basic logic is in but needs all the colours defining
 	//actual pieces - either images or proper drawings
 	//make the pieces in the taken pool jquery draggable for fun()?
+	
+	var bgColours = [];
+	bgColours.push(['#b2b2b2', '#ffffff', '#d9d9d9']);
+	bgColours.push(['#ffffff', '#d9d9d9', '#b2b2b2']);
+	bgColours.push(['#d9d9d9', '#b2b2b2', '#ffffff']);
+	bgColoursCounter = 0;
 	
 	//INITALIZE VARIABLES
 	var boardContainer = document.getElementById('boardContainer');
@@ -173,6 +180,19 @@
 	
 	//ON LOAD
 	window.addEventListener('load', (event) => {
+	
+		//CHANGE BACKGROUND COLOUR OVER TIME
+		/*setInterval(function (){
+			let background = document.getElementById('background');
+			background.style.setProperty('--c1', bgColours[0][bgColoursCounter]);
+			background.style.setProperty('--c2', bgColours[1][bgColoursCounter]);
+			background.style.setProperty('--c3', bgColours[2][bgColoursCounter]);
+			bgColoursCounter++;
+			if(bgColoursCounter > 2){
+				bgColoursCounter = 0;
+			}
+		}, 250);*/
+	
 	
 		//SET CANVAS SIZE TO PARENT DIV - ALLOWS DYNAMIC RESIZING OF THE CANVAS, WHILE FORCING IT TO BE SQUARE
 		canvas.width = parseInt(getComputedStyle(boardContainer).getPropertyValue('width'), 10);
@@ -219,11 +239,17 @@
 			if(postClickActions.piece != false){
 				updateTakenPool(postClickActions.piece);
 			}
+			if(postClickActions.inCheck != false){
+				createAlert('moveIntoCheck');
+				
+				let checkMove = board.getCheckMove();
+				board.addWarning(checkMove.moves[0].x, checkMove.moves[0].y);
+				board.addWarning(checkMove.piece.piece.x, checkMove.piece.piece.y);
+				
+				return;
+			}
 			if(postClickActions.swapTurn != false){
 				swapTurn();
-			}
-			if(postClickActions.inCheck != false){
-				alert('you cannot move into check');
 			}
 			//CHECK FOR CHECK
 			if(board.isInCheck(currentTurn)){
@@ -278,6 +304,35 @@
 					document.getElementById('blackCheckDisplay').innerHTML = '';
 				break;
 			}
+		}
+		
+		//CREATE ALERT
+		function createAlert(alertType)
+		{
+			switch(alertType){
+				case 'moveIntoCheck':
+					let checkingPiece = board.getCheckingPiece();
+					let flashing = true;
+					let flashCounter = 0;
+					var flashInterval = setInterval( function() {
+						if(flashing){
+							board.addWarning(checkingPiece.x, checkingPiece.y);
+							flashing = false;
+						}else{
+							board.emptyWarning();
+							flashing = true;
+						}
+						//INCREMENT TIMER
+						flashCounter++;
+						renderer.draw(board);
+						
+						if(flashCounter > 11){
+							clearInterval(flashInterval);
+						}
+					}, 150);
+				break;
+
+			}		
 		}
 		
 		//SWAP PLAYERS TURN
@@ -401,6 +456,22 @@
 					//PLACE PIECE IN NEW SQUARE
 					emulatedBoard.set(allValidMoves[i].moves[j].x, allValidMoves[i].moves[j].y, allValidMoves[i].piece);
 					
+					//IF AI IS IN CHECK
+					//if(board.isInCheck(currentTurn)){
+						//MOVE MUST REMOVE CHECK
+						if(emulatedBoard.isInCheck(currentTurn)){
+							//UNDO MOVE
+							emulatedBoard.set(allValidMoves[i].piece.getX(), allValidMoves[i].piece.getY(), allValidMoves[i].piece);
+							if(takenPiece == null){
+								emulatedBoard.set(allValidMoves[i].moves[j].x, allValidMoves[i].moves[j].y, null);
+							}else{
+								emulatedBoard.set(allValidMoves[i].moves[j].x, allValidMoves[i].moves[j].y, takenPiece);
+							}
+							//IGNORE MOVE, CONTINUE
+							continue;
+						}
+					//}
+					
 					//console.log('NEW INITIAL MOVE');
 					//EMULATE A SECOND COPY OF THE BOARD TO PERFORM THE OPPONENTS MOVES ON
 					let secondEmulatedBoard = new Board(emulatedBoard.getStateCopy());
@@ -511,11 +582,20 @@
 				board.get(chosenMove.move.x, chosenMove.move.y).hasMoved();
 			}
 			
-			//REDRAW
-			renderer.draw(board);
-			
 			//SWAP TURN
 			swapTurn();
+			
+			//CREATE CLICK EVENT ON AN EMPTY SQUARE - HANDLES CHECK LOGIC, WARNING-HIGHLIGHT ETC
+			//to-do - I just picked the clientX and clientY as a random place on the board - but I feel like should make one of the squares selected if theres a piece on it?
+			//however that doesn't seem to be happening?
+			let emulatedEvent = new MouseEvent('click', {
+				'view': window,
+				'bubbles': true,
+				'cancelable': true,
+				'clientX': 714,
+				'clientY': 283
+			});
+			canvas.dispatchEvent(emulatedEvent);
 			
 		}
 		

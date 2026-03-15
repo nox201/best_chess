@@ -181,6 +181,30 @@ class Board {
 		return checked;
 	}
 	
+	//REMEMBER THIS FUNCTION IS ONLY USED WHEN MOVING INTO CHECK - IT WONT FIND THE CHECKING PIECE IF ITS NOT THE KING BEING MOVED 
+	getCheckingPiece = function(){
+		console.log('in getCheckingPiece');
+		//INIT
+		let allMoves;
+		let checkingPiece = null;
+		//ITERATE ALL MOVES FOR OPPONENT
+		if(currentTurn == 'white'){
+			allMoves = this.getAllValidMoves('black');
+		}else{
+			allMoves = this.getAllValidMoves('white');
+		}
+		//ITERATE ALL OPPONENTS MOVES
+		allMoves.forEach((piece) => {
+			piece.moves.forEach((move) => {
+				if(this.get(move.x, move.y) != null){
+					checkingPiece = {'x': piece.piece.x, 'y': piece.piece.y};
+				}
+			});
+		});
+		//RETURN CHECKING PIECE
+		return checkingPiece;
+	}
+	
 	//this dupes a lot of the same code as isInCheck but does a decent seperation of concerns
 	getCheckMove = function(){
 		//INIT
@@ -254,23 +278,6 @@ class Board {
 					this.get(x, y).hasMoved();
 				}
 			}
-				
-			//MAKE MOVE - CHECK FOR TAKING PIECE
-			/* if(this.get(x, y) != null){
-				if(this.get(x, y).getColour() != currentTurn){
-					//CANT CALL UPDATETAKENPOOL FROM HERE, SO RETURN PIECE BACK TO MAIN SCRIPT
-					ret.piece = this.get(x, y);
-				}
-			}
-			//PLACE PIECE IN NEW SQUARE
-			this.set(x, y, this.get(this.getSelected().x, this.getSelected().y));
-			//REMOVE PIECE FROM CURRENT SQUARE
-			this.set(this.getSelected().x, this.getSelected().y, null);
-			
-			//MOVE MADE, DESELECT
-			this.deselectEverything();
-			//SET SWAP TURN
-			ret.swapTurn = true; */
 			
 			//DESELECT EVERYTHING
 			this.deselectEverything();
