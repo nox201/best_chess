@@ -42,6 +42,7 @@ class Board {
 	
 	makeMove = function(piece, move)
 	{
+		console.log(piece);
 		//INIT
 		let takenPiece = null;
 		//STORE CURRENT STATE
@@ -179,6 +180,29 @@ class Board {
 		});
 		//RETURN CHECKED
 		return checked;
+	}
+	
+	isInCheckmate = function(){
+		let checkmate = true;
+		let allMoves;
+		//ITERATE ALL MOVES FOR CURRENT PLAYER
+		allMoves = this.getAllValidMoves(currentTurn);
+		//ITERATE ALL OPPONENTS MOVES
+		allMoves.forEach((piece) => {
+			piece.moves.forEach((move) => {
+				//MAKE MOVE
+				this.makeMove(piece.piece, move);
+				//CHECK IF THIS REMOVES CHECK
+				if(!this.isInCheck()){
+					checkmate = false;
+				}
+				//UNDO MOVE
+				this.undo();
+			});
+		});
+		//RETURN CHECKMATE
+		return checkmate;
+		
 	}
 	
 	//REMEMBER THIS FUNCTION IS ONLY USED WHEN MOVING INTO CHECK - IT WONT FIND THE CHECKING PIECE IF ITS NOT THE KING BEING MOVED 
@@ -447,6 +471,9 @@ class Board {
 								this.squares[j][i] = new Queen(state[j][i].colour);
 							break;
 						}
+						//SET PIECES X AND Y COORDS
+						this.squares[j][i].setX(j);
+						this.squares[j][i].setY(i);
 					}else{
 						this.squares[j][i] = null;
 					}

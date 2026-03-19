@@ -67,10 +67,28 @@
 	}
 	
 	#whiteCheckDisplay {
-		
+		margin-top: 10px;
+		width: 25%;
+		height: 5%;
+		margin-right: auto;
+		margin-left: auto;
+		background-color: #FFFFFF;
+		border: 2px solid black;
+	}
+	#whiteCheckContent {
+		font-size: 70px;
 	}
 	#blackCheckDisplay {
-		
+		margin-top: 10px;
+		width: 25%;
+		height: 5%;
+		margin-right: auto;
+		margin-left: auto;
+		background-color: #FFFFFF;
+		border: 2px solid black;
+	}
+	#blackCheckContent {
+		font-size: 70px;
 	}
 	#whiteTakenPool {
 		display: inline-block;
@@ -103,6 +121,18 @@
 		padding: 20px;
 	}
 	
+	#gameOver {
+		position: absolute;
+		left: 25%;
+		top: 20%;
+		height: 50%;
+		width: 50%;
+		border: 2px solid black;
+		background-color: #FFFFFF;
+		text-align: center;
+		display: none;
+	}
+	
 	.inverted {
 		background-color: black;
 		color: white;
@@ -117,15 +147,23 @@
 		<!--<button id="testMove">Make Move</button>-->
 		<!--♞♛♟♝♟♟♟♟♞♛♟♝♟-->
 		
+		<div id="gameOver">
+			<h1>Game Over</h1>
+			<p id="gameOverContent"></p>
+			<button onclick="newGame()">Play Again</button>
+			<button onclick="viewBoard()">View Final Move</button>
+		</div>
+		
 		<div class="sideContainer">
 			<div id="whiteTakenPool" class="dataContainer">
 				<span id="whiteTakenString"></span>
 			</div>
 			<div id="whiteTurnDisplay" class="dataContainer">
 				<span id="whiteTurnString">White's Move</span>
-				<span id="whiteCheckDisplay"></span>
 			</div>
-			
+			<div id="whiteCheckDisplay">
+				<span id="whiteCheckContent">&#x2654;</span>
+			</div>
 		</div>
 		
 		<div id="boardContainer">
@@ -133,14 +171,17 @@
 		</div>
 		
 		<div class="sideContainer">
-		<div id="blackTakenPool"  class="dataContainer inverted">
-			<span id="blackTakenString"></span>
-		</div>
-		
-		<div id="blackTurnDisplay" class="dataContainer inverted">
-			<span id="blackTurnString">Black's Move</span>
-			<span id="blackCheckDisplay"></span>
-		</div>
+			<div id="blackTakenPool"  class="dataContainer inverted">
+				<span id="blackTakenString"></span>
+			</div>
+			
+			<div id="blackTurnDisplay" class="dataContainer inverted">
+				<span id="blackTurnString">Black's Move</span>
+			</div>
+			
+			<div id="blackCheckDisplay">
+				<span id="blackCheckContent">&#x265A;</span>
+			</div>
 		</div>
 		
 	</div>
@@ -151,12 +192,14 @@
 <script>
 
 	//TO-DO
-	//fix bug - when two kings meet, the getCheckingPiece method fails 
+	//fix bug - when two kings meet, the getCheckingPiece method fails
 	//ai - improve the AI so it doesn't take such bad trades.
 	//ai - potentially upgrade the score stuff so that piece positioning impacts the moves score
-	//checkmate state
+	//make AI acknowledge checkmate state
 	//game controls - start new game, game win/lost state
-	//css - style, title, alerts
+	//change the 'in check' warning to be a little box under the move div which is the players colour, but turns into the king with a pink background when the player is in check
+	//have a button to show the previous move (more highlighted squares of the last moves start and finish position)
+	//css - style, title, alerts, everything
 	//background - finish making the background change colour - basic logic is in but needs all the colours defining
 	//actual pieces - either images or proper drawings
 	//make the pieces in the taken pool jquery draggable for fun()?
@@ -177,6 +220,12 @@
 	var defendingCheck = false;
 	var preventMove = false;
 	var gameOver = false;
+	
+			
+	function viewBoard()
+	{
+		document.getElementById('gameOver').style.display = 'none';
+	}
 	
 	//ON LOAD
 	window.addEventListener('load', (event) => {
@@ -253,8 +302,10 @@
 			}
 			//CHECK FOR CHECK
 			if(board.isInCheck(currentTurn)){
-				//to-do - checkmate check
-				
+				//CHECKMATE CHECK
+				if(board.isInCheckmate(currentTurn)){
+					createAlert('checkmate');
+				}
 				//DISPLAY CHECK WARNING TO PLAYER
 				updateCheckWarning(currentTurn);
 				//ADD WARNING COLOURS TO BOARD - ATTACKING PIECE AND KING POSITION
@@ -290,18 +341,17 @@
 		function updateCheckWarning(currentTurn)
 		{
 			switch(currentTurn){
-				case 'white':
-					//SHOW PIECES UNICODE CHARACTER IN TAKEN POOL - SPACE IS REQUIRED AT THE END OTHERWISE THE STRING NEVER BREAKS ONTO A NEW LINE
-					document.getElementById('whiteCheckDisplay').innerHTML = 'You are in check!';
-					document.getElementById('blackCheckDisplay').innerHTML = '';
+				case 'white':					
+					document.getElementById('whiteCheckDisplay').style.backgroundColor = 'pink';
+					document.getElementById('blackCheckDisplay').style.backgroundColor = 'white';
 				break;
 				case 'black':
-					document.getElementById('whiteCheckDisplay').innerHTML = '';
-					document.getElementById('blackCheckDisplay').innerHTML = 'You are in check!';
+					document.getElementById('whiteCheckDisplay').style.backgroundColor = 'white';
+					document.getElementById('blackCheckDisplay').style.backgroundColor = 'pink';
 				break;
 				default:
-					document.getElementById('whiteCheckDisplay').innerHTML = '';
-					document.getElementById('blackCheckDisplay').innerHTML = '';
+					document.getElementById('whiteCheckDisplay').style.backgroundColor = 'white';
+					document.getElementById('blackCheckDisplay').style.backgroundColor = 'white';
 				break;
 			}
 		}
@@ -331,9 +381,17 @@
 						}
 					}, 150);
 				break;
-
-			}		
+				case 'checkmate':
+					document.getElementById('gameOver').style.display = 'block';
+					if(currentTurn == 'white'){
+						document.getElementById('gameOverContent').innerHTML = 'Black Wins';
+					}else{
+						document.getElementById('gameOverContent').innerHTML = 'White Wins';
+					}
+				break;
+			}
 		}
+
 		
 		//SWAP PLAYERS TURN
 		function swapTurn()
