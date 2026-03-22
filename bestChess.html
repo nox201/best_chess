@@ -17,9 +17,15 @@
 		
 	#background {
 		--s: 61px; /* control the size*/
+		/* Grey */
 		--c1: #b2b2b2;
 		--c2: #ffffff;
 		--c3: #d9d9d9;
+		
+		/*Blues*/
+		/*--c1: #7BA9D4;
+		--c2: #B7D4ED;
+		--c3: #DFECF7;*/
 	  
 		--_g: var(--c3) 0 120deg,#0000 0;
 		background:
@@ -192,22 +198,19 @@
 <script>
 
 	//TO-DO
-	//fix bug - when two kings meet, the getCheckingPiece method fails
 	//ai - improve the AI so it doesn't take such bad trades.
 	//ai - potentially upgrade the score stuff so that piece positioning impacts the moves score
 	//make AI acknowledge checkmate state
 	//game controls - start new game, game win/lost state
-	//change the 'in check' warning to be a little box under the move div which is the players colour, but turns into the king with a pink background when the player is in check
-	//have a button to show the previous move (more highlighted squares of the last moves start and finish position)
 	//css - style, title, alerts, everything
-	//background - finish making the background change colour - basic logic is in but needs all the colours defining
-	//actual pieces - either images or proper drawings
+	//change the colouring of the squares to be a soft pastel, fade type of thing, rather than just a solid colour square
+	//background - not sure what to do with this - either need a better way of altering the colours over time or just settle on a nice flat tone
 	//make the pieces in the taken pool jquery draggable for fun()?
 	
 	var bgColours = [];
-	bgColours.push(['#b2b2b2', '#ffffff', '#d9d9d9']);
-	bgColours.push(['#ffffff', '#d9d9d9', '#b2b2b2']);
-	bgColours.push(['#d9d9d9', '#b2b2b2', '#ffffff']);
+	bgColours.push(['#B2B2B2','#B9B9B9','#C0C0C0','#C7C7C7','#CECECE','#D5D5D5','#DCDCDC','#E3E3E3','#EAEAEA','#F1F1F1','#F8F8F8','#FFFFFF','#FCFCFC','#F8F8F8','#F5F5F5','#F1F1F1','#EEEEEE','#EAEAEA','#E7E7E7','#E3E3E3','#E0E0E0','#DCDCDC','#D9D9D9','#D5D5D5','#D2D2D2','#CECECE','#CBCBCB','#C7C7C7','#C4C4C4','#C0C0C0','#BDBDBD','#B9B9B9','#B6B6B6']);
+	bgColours.push(['#FFFFFF','#FCFCFC','#F8F8F8','#F5F5F5','#F1F1F1','#EEEEEE','#EAEAEA','#E7E7E7','#E3E3E3','#E0E0E0','#DCDCDC','#D9D9D9','#D5D5D5','#D2D2D2','#CECECE','#CBCBCB','#C7C7C7','#C4C4C4','#C0C0C0','#BDBDBD','#B9B9B9','#B6B6B6','#B2B2B2','#B9B9B9','#C0C0C0','#C7C7C7','#CECECE','#D5D5D5','#DCDCDC','#E3E3E3','#EAEAEA','#F1F1F1','#F8F8F8']);
+	bgColours.push(['#D5D5D5','#D2D2D2','#CECECE','#CBCBCB','#C7C7C7','#C4C4C4','#C0C0C0','#BDBDBD','#B9B9B9','#B6B6B6','#B2B2B2','#B9B9B9','#C0C0C0','#C7C7C7','#CECECE','#D5D5D5','#DCDCDC','#E3E3E3','#EAEAEA','#F1F1F1','#F8F8F8','#FFFFFF','#FCFCFC','#F8F8F8','#F5F5F5','#F1F1F1','#EEEEEE','#EAEAEA','#E7E7E7','#E3E3E3','#E0E0E0','#DCDCDC','#D9D9D9']);
 	bgColoursCounter = 0;
 	
 	//INITALIZE VARIABLES
@@ -231,17 +234,18 @@
 	window.addEventListener('load', (event) => {
 	
 		//CHANGE BACKGROUND COLOUR OVER TIME
+		//hate this currently - need a better way of defining what colours to cycle through
+		//although it also needs to run pretty fast to not look jarring, so maybe not worth it
 		/*setInterval(function (){
 			let background = document.getElementById('background');
 			background.style.setProperty('--c1', bgColours[0][bgColoursCounter]);
 			background.style.setProperty('--c2', bgColours[1][bgColoursCounter]);
 			background.style.setProperty('--c3', bgColours[2][bgColoursCounter]);
 			bgColoursCounter++;
-			if(bgColoursCounter > 2){
+			if(bgColoursCounter > 23){
 				bgColoursCounter = 0;
 			}
-		}, 250);*/
-	
+		}, 100);*/
 	
 		//SET CANVAS SIZE TO PARENT DIV - ALLOWS DYNAMIC RESIZING OF THE CANVAS, WHILE FORCING IT TO BE SQUARE
 		canvas.width = parseInt(getComputedStyle(boardContainer).getPropertyValue('width'), 10);
@@ -262,6 +266,10 @@
 		
 		//BIND HIGHEST LEVEL EVENT LISTENER
 		canvas.addEventListener('click', handleCanvasClicked);
+		
+		//BIND 'SEE LAST MOVE ON HOVER' TO BOTH TURN DISPLAYS
+		document.getElementById('whiteTurnDisplay').addEventListener('mouseover', showLastMove);
+		document.getElementById('whiteTurnDisplay').addEventListener('mouseout', hideLastMove);
 		
 		//SET WHITE TO GO FIRST
 		//I call swapTurn when starting the game, this is set to black so that white goes first
@@ -288,18 +296,23 @@
 			if(postClickActions.piece != false){
 				updateTakenPool(postClickActions.piece);
 			}
-			if(postClickActions.inCheck != false){
+			if(postClickActions.inCheck){
+				//CREATE ALERT NOTIFYING PLAYER THEY ARE MOVING INTO CHECK
 				createAlert('moveIntoCheck');
-				
 				let checkMove = board.getCheckMove();
 				board.addWarning(checkMove.moves[0].x, checkMove.moves[0].y);
 				board.addWarning(checkMove.piece.piece.x, checkMove.piece.piece.y);
-				
+				//UNDO MOVE THAT PUT THE KING IN CHECK
+				if(postClickActions.undo){
+					board.undo();
+				}
+				//FINISH HERE, DONT SWAP TURN ETC
 				return;
 			}
-			if(postClickActions.swapTurn != false){
+			if(postClickActions.swapTurn){
 				swapTurn();
 			}
+			
 			//CHECK FOR CHECK
 			if(board.isInCheck(currentTurn)){
 				//CHECKMATE CHECK
@@ -317,6 +330,11 @@
 				board.emptyWarning();
 				updateCheckWarning(null);
 			}
+			
+			if(postClickActions.undo){
+				board.undo();
+			}
+			
 			//REDRAW BOARD
 			renderer.draw(board);
 		}
@@ -392,7 +410,6 @@
 			}
 		}
 
-		
 		//SWAP PLAYERS TURN
 		function swapTurn()
 		{
@@ -409,6 +426,17 @@
 				document.getElementById('whiteTurnDisplay').style.border = '5px solid green';
 				document.getElementById('blackTurnDisplay').style.border = '5px solid black';
 			}
+		}
+		
+		function showLastMove()
+		{
+			board.showLastMove = true;
+			renderer.draw(board);
+		}
+		function hideLastMove()
+		{
+			board.showLastMove = false;
+			renderer.draw(board);
 		}
 		
 		function getRandomInt(max) {

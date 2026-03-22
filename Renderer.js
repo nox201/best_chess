@@ -40,6 +40,8 @@ class Renderer{
 					plane.fillStyle = 'lightgreen';
 				}else if(board.isWarning(i, j)){
 					plane.fillStyle = 'pink';
+				}else if(board.isLastMove(i, j) && board.showLastMove){
+					plane.fillStyle = 'LightSteelBlue';
 				}else{
 					//DRAW DEFAULT SQUARE
 					plane.fillStyle = colour;

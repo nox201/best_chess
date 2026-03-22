@@ -7,7 +7,9 @@ class Board {
 	selected = {};
 	highlighted = [];
 	warning = [];
+	lastMove = [];
 	previousState;
+	showLastMove = false;
 	
 	//GET SQUARE METHOD	
 	get = function(x, y)
@@ -42,11 +44,14 @@ class Board {
 	
 	makeMove = function(piece, move)
 	{
-		console.log(piece);
 		//INIT
 		let takenPiece = null;
+		//EMPTY ANY LAST MOVE
+		this.emptyLastMove();
 		//STORE CURRENT STATE
 		this.previousState = this.getStateCopy();
+		//STORE LAST MOVE 
+		this.addLastMove(piece.getX(), piece.getY());
 		//REMOVE PIECE FROM CURRENT SQUARE
 		this.set(piece.getX(), piece.getY(), null);
 		//CHECK FOR TAKING PIECE
@@ -56,6 +61,8 @@ class Board {
 		}
 		//PLACE PIECE IN NEW SQUARE
 		this.set(move.x, move.y, piece);
+		//STORE LAST MOVE 
+		this.addLastMove(move.x, move.y);
 		//RETURN TAKEN PIECE
 		return takenPiece;
 	}
@@ -207,7 +214,6 @@ class Board {
 	
 	//REMEMBER THIS FUNCTION IS ONLY USED WHEN MOVING INTO CHECK - IT WONT FIND THE CHECKING PIECE IF ITS NOT THE KING BEING MOVED 
 	getCheckingPiece = function(){
-		console.log('in getCheckingPiece');
 		//INIT
 		let allMoves;
 		let checkingPiece = null;
@@ -246,7 +252,6 @@ class Board {
 		allMoves.forEach((piece) => {
 			piece.moves.forEach((move) => {
 				if(this.get(move.x, move.y) != null){
-					console.log(this.get(move.x, move.y).getName());
 					if(this.get(move.x, move.y).getName() == 'King'){
 						checkPiece = piece;
 						checkMoves.push(move);
@@ -269,6 +274,7 @@ class Board {
 		ret.piece = false;
 		ret.swapTurn = false;
 		ret.inCheck = false;
+		ret.undo = false;
 		
 		//CHECK FOR HIGHLIGHTED PIECE
 		if(this.isHighlighted(x, y)){
@@ -286,7 +292,8 @@ class Board {
 			//CHECK FOR CHECK
 			if(this.isInCheck()){
 				//UNDO MOVE
-				this.undo();
+				//this.undo();
+				ret.undo = true;
 				//SET CHECK WARNING
 				ret.inCheck = true;
 			}else{
@@ -402,6 +409,30 @@ class Board {
 	{
 		this.emptySelected();
 		this.emptyHighlighted();
+	}
+	
+	//LAST MOVE SQUARE FUNCTIONS
+	addLastMove = function(x, y)
+	{
+		this.lastMove.push({'x': x, 'y': y});
+	}
+	isLastMove = function(x, y)
+	{
+		let ret = false;
+		this.getLastMove().forEach((square) => {
+			if(square.x == x && square.y == y){
+				ret = true;
+			}
+		});
+		return ret; 
+	}
+	getLastMove = function()
+	{
+		return this.lastMove;
+	}
+	emptyLastMove = function()
+	{
+		this.lastMove = [];
 	}
 
 	//POPUALTE THE BOARD WITH A CUSTOM STATE OR IF NONE PROVIDED, A FRESH GAME
