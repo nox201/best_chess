@@ -12,6 +12,7 @@
 	<script src="Bishop.js"></script>
 	<script src="Queen.js"></script>
 	<script src="King.js"></script>
+	<script src="Ai.js"></script>
 	
 	<style>
 		
@@ -449,8 +450,19 @@
 		
 		document.getElementById('testMove').addEventListener('click', function() {
 			//CALL FUNCTION
-			makeAiMove();
+			//makeAiMove();
+			//testing a re-write
+			makeOpponentMove();
 		});
+		
+		//rewriting this again - this will be a wrapper function that allows the passing of parameters, as this will just be called directly by button
+		//want this to be an abstract class but js doesn't support them
+		function makeOpponentMove(){
+			let ai = new Ai(board.getStateCopy(), currentTurn);
+			let opponentsMove = ai.makeOpponentMove();
+		
+			console.log('OpponentsMove: ' + opponentsMove);
+		}
 		
 		function makeAiMove()
 		{
