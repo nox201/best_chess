@@ -1,8 +1,11 @@
 class Board {
+	
+	//CONSTRUCTOR
 	constructor(state){
 		this.populateBoard(state);
 	}
 	
+	//PROPERTIES
 	squares = [];
 	selected = {};
 	highlighted = [];
@@ -11,7 +14,7 @@ class Board {
 	previousState;
 	showLastMove = false;
 	
-	//GET SQUARE METHOD	
+	//GETTERS/SETTERS
 	get = function(x, y)
 	{
 		//console.log('Board.get search for x: ' + x + ', y: ' + y);
@@ -22,6 +25,7 @@ class Board {
 		this.squares[x][y] = piece;
 	}
 	
+	//GETS ALL THE VALID MOVES FOR A GIVEN PLAYER FOR THE BOARD IN ITS CURRENT STATE
 	getAllValidMoves = function(colour)
 	{
 		let validMoves;
@@ -42,6 +46,11 @@ class Board {
 		return allValidMoves;
 	}
 	
+	//-------------
+	//MOVE STUFF
+	//-------------
+	
+	//MAKES A MOVE, RETURNING A PIECE IF ONE WAS TAKEN
 	makeMove = function(piece, move)
 	{
 		//INIT
@@ -66,13 +75,14 @@ class Board {
 		//RETURN TAKEN PIECE
 		return takenPiece;
 	}
-	
+	//UNDO THE LAST MOVE MADE WITH makeMove
 	undo = function()
 	{
 		this.populateBoard(this.previousState);
 	}
 	
-	
+	//RETURNS THE TOTAL VALUE OF ALL THE PIECES ON THE BOARD
+	//Negative values means black is ahead, positive ones white
 	getScore = function()
 	{
 		let score = 0;
@@ -88,55 +98,12 @@ class Board {
 		return score;
 	}
 	
-	getScoreForMove = function(validMove, move)
-	{
-		let score = 0;
-		//convienience variable
-		let piece = validMove.piece;
-		let takenPiece = null;
-		
-		//REMOVE PIECE FROM CURRENT SQUARE
-		this.set(piece.getX(), piece.getY(), null);
-		//CHECK FOR TAKING PIECE
-		if(this.get(move.x, move.y) != null){
-			//STORE TAKEN PIECE
-			takenPiece = this.get(move.x, move.y);
-		}
-		//PLACE PIECE IN NEW SQUARE
-		this.set(move.x, move.y, piece);
-		
-		//CALCULATE SCORE OF BOARD IN CURRENT STATE
-		this.getState().forEach((x) => {
-			x.forEach((y) => {
-				if(y != null){
-					//console.log('Piece ' + y.getName() + ' score: ' + y.getScore());
-					score += y.getScore();
-				}
-			})
-		});
-		
-		//console.log('getScoreForMove');
-		//this.debug();
-		//console.log(score)
-		
-		//UNDO MOVE
-		this.set(piece.getX(), piece.getY(), piece);
-		if(takenPiece == null){
-			this.set(move.x, move.y, null);
-		}else{
-			this.set(move.x, move.y, takenPiece);
-		}
-		
-		//RETURN WHOLE BOARD SCORE
-		return score;
-	}
-	
 	//RETURNS AN ARRAY REPRESENTING THE CURRENT POSITION OF ALL PIECES ON THE BOARD
-	//Should this just return the whole squares[]?
 	getState = function()
 	{
 		return this.squares;
 	}
+	//RETURN A SEPERATE COPY OF THE BOARD, ALLOWING THE BOARD TO BE REBUILT VIA populateBoard
 	getStateCopy = function()
 	{
 		let state = [];
@@ -264,7 +231,7 @@ class Board {
 	}
 	
 	//---------
-	//handle click stuff
+	//HANDLE CLICK EVENT STUFF
 	//---------
 	
 	handleClick = function(event, x, y)
@@ -330,6 +297,10 @@ class Board {
 		//RETURN VALUES
 		return ret;
 	}
+	
+	//---------
+	//SQUARE STATES
+	//---------
 	
 	//SELECTED SQUARE FUNCTIONS
 	setSelected = function(x, y)
@@ -434,6 +405,10 @@ class Board {
 	{
 		this.lastMove = [];
 	}
+	
+	//---------
+	//BOARD CREATION
+	//---------
 
 	//POPUALTE THE BOARD WITH A CUSTOM STATE OR IF NONE PROVIDED, A FRESH GAME
 	populateBoard = function(state)
@@ -453,29 +428,47 @@ class Board {
 		if(state == null){
 			//ADD BLACK
 			this.squares[0][0] = new Castle('black');
+			this.squares[0][0].setPosition(0, 0);
 			this.squares[1][0] = new Knight('black');
+			this.squares[1][0].setPosition(1, 0);
 			this.squares[2][0] = new Bishop('black');
+			this.squares[2][0].setPosition(2, 0);
 			this.squares[3][0] = new Queen('black');
+			this.squares[3][0].setPosition(3, 0);
 			this.squares[4][0] = new King('black');
+			this.squares[4][0].setPosition(4, 0);
 			this.squares[5][0] = new Bishop('black');
+			this.squares[5][0].setPosition(5, 0);
 			this.squares[6][0] = new Knight('black');
+			this.squares[6][0].setPosition(6, 0);
 			this.squares[7][0] = new Castle('black');
+			this.squares[7][0].setPosition(7, 0);
 			//ADD PAWNS
 			for(let i = 0; i < 8; i++){
 				this.squares[i][1] = new Pawn('black');
+				this.squares[i][1].setPosition(i, 1);
 			}
 			//ADD WHITE
 			this.squares[0][7] = new Castle('white');
+			this.squares[0][7].setPosition(0, 7);
 			this.squares[1][7] = new Knight('white');
+			this.squares[1][7].setPosition(1, 7);
 			this.squares[2][7] = new Bishop('white');
+			this.squares[2][7].setPosition(2, 7);
 			this.squares[3][7] = new Queen('white');
+			this.squares[3][7].setPosition(3, 7);
 			this.squares[4][7] = new King('white');
+			this.squares[4][7].setPosition(4, 7);
 			this.squares[5][7] = new Bishop('white');
+			this.squares[5][7].setPosition(5, 7);
 			this.squares[6][7] = new Knight('white');
+			this.squares[6][7].setPosition(6, 7);
 			this.squares[7][7] = new Castle('white');
+			this.squares[7][7].setPosition(7, 7);
 			//ADD PAWNS
 			for(let i = 0; i < 8; i++){
 				this.squares[i][6] = new Pawn('white');
+				this.squares[i][1].setPosition(i, 6);
 			}
 		}else{
 			//SET SQUARES TO PROVIDED STATE
@@ -503,8 +496,7 @@ class Board {
 							break;
 						}
 						//SET PIECES X AND Y COORDS
-						this.squares[j][i].setX(j);
-						this.squares[j][i].setY(i);
+						this.squares[j][i].setPosition(j, i);
 					}else{
 						this.squares[j][i] = null;
 					}

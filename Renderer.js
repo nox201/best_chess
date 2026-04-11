@@ -1,8 +1,11 @@
 class Renderer{
+	
+	//CONSTRUCTOR
 	constructor(canvas){
 		this.canvas = canvas;
 	}
 	
+	//PROPERTIES
 	canvas;
 	
 	draw = function(board)

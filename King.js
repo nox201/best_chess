@@ -1,11 +1,14 @@
 class King extends Piece {
+	
+	//CONSTRUCTOR
 	constructor(colour){
 		super(colour);
 	}
 	
+	//PROPERTIES
 	name = 'King';
 	
-	//GET VALID MOVES FOR KING IS JUST THE SAME CODE FROM BISHOP AND CASTLE COPY/PASTED
+	//GET VALID MOVES FOR KING IS JUST THE SAME CODE FROM BISHOP AND CASTLE COPY/PASTED LIMITED TO ONE SPACE
 	getValidMoves = function(board, x, y){
 		
 		//INIT

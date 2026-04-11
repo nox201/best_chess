@@ -1,13 +1,18 @@
 class Piece {
+	
+	//CONSTRUCTOR
 	constructor(colour){
 		this.colour = colour;
 	}
+	
+	//PROPERTIES
 	colour;
 	x;
 	y;
 	moveset;
 	name = 'Generic Piece';
 	
+	//GETTERS/SETTERS
 	setX = function(x){
 		this.x = x;
 	}
@@ -27,7 +32,6 @@ class Piece {
 	getPosition(){
 		return {'x' : this.x, 'y' : this.y};
 	}
-	
 	getName = function(){
 		return this.name;
 	}
@@ -41,6 +45,7 @@ class Piece {
 	}
 	
 	//UTILITY FUNCTION TO RETURN THE PIECES UNICODE CHARACTER
+	//mirrors functionality as Piece.getUnicode, but this can be used in the taken pool
 	getUnicode = function(){
 		let fontUnicodeCharacters = [];
 		fontUnicodeCharacters['white'] = [];
@@ -82,18 +87,12 @@ class Piece {
 		return scores[this.colour][this.name];
 	}
 	
-	
-	/*draw = function(x, y, squareSize){
-		//DRAW UNICODE CHARACTER
-		this.plane.fillStyle = 'black';
-		this.plane.fillText(this.getUnicode(), squareSize * x + (squareSize / 2), squareSize * y + squareSize);
-	}*/
-	
-
+	//PARENT METHOD - IS REPLACED BY CHILD CLASSES IMPLEMENTATION (PAWN, KNIGHT ETC)
 	getValidMoves = function(boardState){
 		return [];
 	};
 	
+	//DETERMINES IF A LOCATION IS ON THE BOARD, IS EMPTY, AND IF NOT IF THE PIECE IS OF THE SAME COLOUR
 	isOccupied = function(board, x, y, colour){
 		//CHECK THAT SQUARE IS ON THE BOARD
 		if(x < 0 || x > 7 || y < 0 || y > 7){
@@ -112,19 +111,4 @@ class Piece {
 		}
 	}
 	
-	//should this function live elsewhere?
-	/* isOccupied(board, x, y, colour){
-		let occupied = 'none';
-		//console.log(boardState);
-		for(let i = 0; i < boardState.length; i++){
-			if(boardState[i].x == x && boardState[i].y == y){
-				if(boardState[i].colour == colour){
-					occupied = 'player';
-				}else{
-					occupied = 'opponent';
-				}
-			}
-		}
-		return occupied;
-	} */
 }

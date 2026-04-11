@@ -1,8 +1,11 @@
 class Queen extends Piece {
+	
+	//CONSTRUCTOR
 	constructor(colour){
 		super(colour);
 	}
 	
+	//PROPERTIES
 	name = 'Queen';
 	
 	//GET VALID MOVES FOR QUEEN IS JUST THE SAME CODE FROM BISHOP AND CASTLE COPY/PASTED

@@ -1,8 +1,11 @@
 class Knight extends Piece {
+	
+	//CONSTRUCTOR
 	constructor(colour){
 		super(colour);
 	}
 	
+	//PROPERTIES
 	name = 'Knight';
 	
 	getValidMoves = function(board, x, y){

@@ -201,12 +201,12 @@
 	//TO-DO
 	//ai - improve the AI so it doesn't take such bad trades.
 	//ai - potentially upgrade the score stuff so that piece positioning impacts the moves score
-	//make AI acknowledge checkmate state
+	//make AI acknowledge check/checkmate state
 	//game controls - start new game, game win/lost state
 	//css - style, title, alerts, everything
 	//change the colouring of the squares to be a soft pastel, fade type of thing, rather than just a solid colour square
 	//background - not sure what to do with this - either need a better way of altering the colours over time or just settle on a nice flat tone
-	//make the pieces in the taken pool jquery draggable for fun()?
+	//while the ai is 'thinking', replace the king with a thinking emoji
 	
 	var bgColours = [];
 	bgColours.push(['#B2B2B2','#B9B9B9','#C0C0C0','#C7C7C7','#CECECE','#D5D5D5','#DCDCDC','#E3E3E3','#EAEAEA','#F1F1F1','#F8F8F8','#FFFFFF','#FCFCFC','#F8F8F8','#F5F5F5','#F1F1F1','#EEEEEE','#EAEAEA','#E7E7E7','#E3E3E3','#E0E0E0','#DCDCDC','#D9D9D9','#D5D5D5','#D2D2D2','#CECECE','#CBCBCB','#C7C7C7','#C4C4C4','#C0C0C0','#BDBDBD','#B9B9B9','#B6B6B6']);
@@ -338,6 +338,12 @@
 			
 			//REDRAW BOARD
 			renderer.draw(board);
+			
+			//this works but is async so i need a callback so that the board renders, then the move is done and then renders again
+			//however that will make the code wierd, why would renderer.draw require a function as a param to make an ai move
+			if(postClickActions.swapTurn){
+				makeOpponentMove();
+			}
 		}
 		
 		//----------------------
@@ -448,253 +454,34 @@
 		//AI STUFF
 		//----------------------
 		
-		document.getElementById('testMove').addEventListener('click', function() {
+		document.getElementById('testMove').addEventListener('click', function(){
 			//CALL FUNCTION
-			//makeAiMove();
-			//testing a re-write
 			makeOpponentMove();
 		});
 		
 		//rewriting this again - this will be a wrapper function that allows the passing of parameters, as this will just be called directly by button
 		//want this to be an abstract class but js doesn't support them
 		function makeOpponentMove(){
+			//LOG 
+			console.log('Start of AI move');
+			//CREATE AI 
 			let ai = new Ai(board.getStateCopy(), currentTurn);
-			let opponentsMove = ai.makeOpponentMove();
-		
-			console.log('OpponentsMove: ' + opponentsMove);
-		}
-		
-		function makeAiMove()
-		{
-			console.clear();
-			console.log('Start of new AI move - ' + currentTurn + 's turn');
-			
-			//CREATE A COPY OF THE CURRENT BOARD
-			let emulatedBoard = new Board(board.getStateCopy());
-			
-			//ALL VALID MOVES
-			let allValidMoves = emulatedBoard.getAllValidMoves(currentTurn);
-			
-			let potentialMoves = [];
-			let chosenMove = null;
-			let currentBestMoveScore = board.getScore();
-			let moveScore = board.getScore();
-			let takenPiece = null;
-			
-			
-			//EASY DIFFICULTY - WILL MOVE RANDOMLY APART FROM ALWAYS TAKING A PIECE IF POSSIBLE
-			/*for(let i = 0; i < allValidMoves.length; i++){
-				for(let j = 0; j < allValidMoves[i].moves.length; j++){
-					//GET BOARD SCORE FOR MOVE
-					moveScore = emulatedBoard.getScoreForMove(allValidMoves[i], allValidMoves[i].moves[j]);
-					
-					console.log(currentTurn + ' turn: ' + moveScore + ' score for moving ' + allValidMoves[i].piece.getName() + ' ' + allValidMoves[i].piece.getX() + ',' + allValidMoves[i].piece.getY() + ' to ' + allValidMoves[i].moves[j].x + ',' + allValidMoves[i].moves[j].y);
-					
-					//DETERMINE WHICH SCORE TO MAXIMISE - WHITE WANTS HIGHEST, BLACK WANTS LOWEST
-					if(currentTurn == 'white'){
-						//CHECK IF MOVE IS BETTER THAN PREVIOUSLY FOUND
-						if(moveScore > currentBestMoveScore){
-							//UPDATE BEST MOVE SCORE
-							currentBestMoveScore = moveScore;
-							//EMPTY ALL PREVIOUS POTENTIAL MOVES AND ADD NEW ONE
-							potentialMoves = [];
-							potentialMoves.push({'piece': allValidMoves[i].piece, 'move': allValidMoves[i].moves[j]});
-						}else{
-							if(moveScore == currentBestMoveScore){
-								//MOVE TIES CURRENT BEST MOVE SCORE, ADD TO POTENTIAL MOVES
-								potentialMoves.push({'piece': allValidMoves[i].piece, 'move': allValidMoves[i].moves[j]});
-							}
-						}
-					}else{
-						if(moveScore < currentBestMoveScore){
-							//UPDATE BEST MOVE SCORE
-							currentBestMoveScore = moveScore;
-							//EMPTY ALL PREVIOUS POTENTIAL MOVES AND ADD NEW ONE
-							potentialMoves = [];
-							potentialMoves.push({'piece': allValidMoves[i].piece, 'move': allValidMoves[i].moves[j]});
-						}else{
-							if(moveScore == currentBestMoveScore){
-								potentialMoves.push({'piece': allValidMoves[i].piece, 'move': allValidMoves[i].moves[j]});
-							}
-						}
-					}
-					//console.log('Chosen Move with a score of ' + currentBestMoveScore + ': ' + emulatedBoard.getScoreForMove(allValidMoves[i], allValidMoves[i].moves[j]));
-				}
-			}*/
-			
-			//MEDIUM DIFFICULTY - LOOKS ONE MOVE AHEAD
-			//Ok so this now operates where it always takes a piece, even if it will mean losing a more valuable piece the move after. 
-			//I think at the moment it sees a good score if the opponent were to NOT take the piece, even though other moves will show that is possible, and therefore chooses the move when it shouldn't?
-			
-			let secondAllValidMoves = [];
-			let iterations = 0;
-			let currentIterationBestScore = 0;
-			let currentIterationBestMoves = [];
-			//SET ARBITRARYILY HIGH DEFAULT VALUES
-			if(currentTurn == 'white'){
-				var bestScore = -9999;
-			}else{
-				var bestScore = 9999;
+			//USE AI TO FIND BEST MOVE TO A CERTAIN DEPTH
+			let opponentsMove = ai.minimaxRoot(3);
+			//LOG MOVE
+			console.log(opponentsMove.pieceName + ' from x: ' + opponentsMove.pieceX + ', y: ' + opponentsMove.pieceY + ' moving to x: ' + opponentsMove.move.x + ' y: ' + opponentsMove.move.y);
+			//GET PIECE TO MOVE - due to the opponents move return containing coords for both the piece and its move, need to wangle to get the piece object
+			let bestPiece = board.get(opponentsMove.pieceX, opponentsMove.pieceY);
+			//MAKE MOVE
+			let takenPiece = board.makeMove(bestPiece, {'x': opponentsMove.move.x, 'y': opponentsMove.move.y});
+			//UPDATE TAKEN POOL IF REQUIRED
+			if(takenPiece != null){
+				updateTakenPool(takenPiece);
 			}
-			
-			//ITERATE ALL CURRENT PLAYERS MOVES
-			for(let i = 0; i < allValidMoves.length; i++){
-				for(let j = 0; j < allValidMoves[i].moves.length; j++){
-				
-					takenPiece = null;
-				
-					//EMULATE MOVE
-					//REMOVE PIECE FROM CURRENT SQUARE
-					emulatedBoard.set(allValidMoves[i].piece.getX(), allValidMoves[i].piece.getY(), null);
-					//CHECK FOR TAKING PIECE
-					if(emulatedBoard.get(allValidMoves[i].moves[j].x, allValidMoves[i].moves[j].y) != null){
-						//STORE TAKEN PIECE
-						takenPiece = emulatedBoard.get(allValidMoves[i].moves[j].x, allValidMoves[i].moves[j].y);
-					}
-					//PLACE PIECE IN NEW SQUARE
-					emulatedBoard.set(allValidMoves[i].moves[j].x, allValidMoves[i].moves[j].y, allValidMoves[i].piece);
-					
-					//IF AI IS IN CHECK
-					//if(board.isInCheck(currentTurn)){
-						//MOVE MUST REMOVE CHECK
-						if(emulatedBoard.isInCheck(currentTurn)){
-							//UNDO MOVE
-							emulatedBoard.set(allValidMoves[i].piece.getX(), allValidMoves[i].piece.getY(), allValidMoves[i].piece);
-							if(takenPiece == null){
-								emulatedBoard.set(allValidMoves[i].moves[j].x, allValidMoves[i].moves[j].y, null);
-							}else{
-								emulatedBoard.set(allValidMoves[i].moves[j].x, allValidMoves[i].moves[j].y, takenPiece);
-							}
-							//IGNORE MOVE, CONTINUE
-							continue;
-						}
-					//}
-					
-					//console.log('NEW INITIAL MOVE');
-					//EMULATE A SECOND COPY OF THE BOARD TO PERFORM THE OPPONENTS MOVES ON
-					let secondEmulatedBoard = new Board(emulatedBoard.getStateCopy());
-					//GET THE OPPONENTS VALID MOVES
-					if(currentTurn == 'white'){
-						secondAllValidMoves = emulatedBoard.getAllValidMoves('black');
-					}else{
-						secondAllValidMoves = emulatedBoard.getAllValidMoves('white');
-					}
-					
-					//ITERATE OPPONENTS VALID MOVES
-					for(let k = 0; k < secondAllValidMoves.length; k++){
-						for(let l = 0; l < secondAllValidMoves[k].moves.length; l++){
-						
-							//GET BOARD SCORE FOR OPPONENTS MOVE
-							moveScore = secondEmulatedBoard.getScoreForMove(secondAllValidMoves[k], secondAllValidMoves[k].moves[l]);
-							
-							//WHITE
-							if(currentTurn == 'white'){
-								//CHECK IF SCORE AFTER OPPONENTS MOVE BEATS CURRENT HIGHEST
-								if(moveScore > bestScore){
-									//console.log('NEW BEST SCORE FOUND FOR WHITE');
-									//EMPTY THE EXISTING POTENTIAL MOVES
-									potentialMoves = [{'piece': allValidMoves[i].piece, 'move': allValidMoves[i].moves[j]}];
-									//SET NEW HIGHEST SCORE
-									bestScore = moveScore;
-								}else if(moveScore == bestScore){
-									//BOARD SCORE MATCHES EXISTING HIGHEST - ADD AS POTENTIAL MOVE
-									potentialMoves.push({'piece': allValidMoves[i].piece, 'move': allValidMoves[i].moves[j]});
-								}
-							}else{
-								//BLACK
-								if(moveScore < bestScore){
-									//console.log('NEW BEST SCORE FOUND FOR BLACK');
-									potentialMoves = [{'piece': allValidMoves[i].piece, 'move': allValidMoves[i].moves[j]}];
-									bestScore = moveScore;
-								}else if(moveScore == bestScore){
-									potentialMoves.push({'piece': allValidMoves[i].piece, 'move': allValidMoves[i].moves[j]});
-								}
-							}
-							
-							
-						}
-					}
-					
-					//UNDO MOVE
-					emulatedBoard.set(allValidMoves[i].piece.getX(), allValidMoves[i].piece.getY(), allValidMoves[i].piece);
-					if(takenPiece == null){
-						emulatedBoard.set(allValidMoves[i].moves[j].x, allValidMoves[i].moves[j].y, null);
-					}else{
-						emulatedBoard.set(allValidMoves[i].moves[j].x, allValidMoves[i].moves[j].y, takenPiece);
-					}
-					
-				}
-			}
-			
-			//console.log('Iterations: ' + iterations);
-			//console.log('POTENTIAL MOVES LENGTH: ' + potentialMoves.length);
-			//console.log(potentialMoves);
-			
-			//CHECK HOW MANY POTENTIAL MOVES (MOVES THAT HAVE THE SAME SCORE)
-			if(potentialMoves.length > 1){
-				//PICK A RANDOM POTENTIAL MOVE
-				chosenMove = potentialMoves[getRandomInt(potentialMoves.length)];
-			}else{
-				chosenMove = potentialMoves[0];
-			}
-			
-			//NOTE - ITS USEFUL THAT I CURRENTLY ERROR WHEN I DON'T HAVE A CHOSEN MOVE (IT SHOWS MY STUFF ISN'T WORKING RIGHT) BUT ONCE EVERYTHINGS WORKING PERFECTLY I COULD JUST DO A RANDOM VALIDMOVE IF CHOSEN MOVE IS EMPTY?
-			console.log(currentTurn + ' Chosen Move score: ' + currentBestMoveScore + ' - moves ' + chosenMove.piece.name + ' from ' + chosenMove.piece.getX() + ',' + chosenMove.piece.getY() + ' to ' + chosenMove.move.x + ',' + chosenMove.move.y);
-			
-			//CHECK FOR TAKING PIECE
-			if(board.get(chosenMove.move.x, chosenMove.move.y) != null){
-				if(board.get(chosenMove.move.x, chosenMove.move.y).getColour() != currentTurn){
-					//UPDATE TAKEN POOL
-					updateTakenPool(board.get(chosenMove.move.x, chosenMove.move.y));
-				}
-			}
-
-			//REMOVE PIECE FROM CURRENT SQUARE
-			emulatedBoard.set(chosenMove.piece.getX(), chosenMove.piece.getY(), null);
-			//PLACE PIECE IN NEW SQUARE
-			emulatedBoard.set(chosenMove.move.x, chosenMove.move.y, chosenMove.piece);
-			
-			//PICK A RANDOM VALID MOVE
-			//let randomValidMove = allValidMoves[getRandomInt(allValidMoves.length)];
-			//let randomMove = randomValidMove.moves[getRandomInt(randomValidMove.moves.length)];
-			
-			//CHECK FOR TAKING PIECE
-			//if(board.get(randomMove.x, randomMove.y) != null){
-				//if(board.get(randomMove.x, randomMove.y).getColour() != currentTurn){
-					//UPDATE TAKEN POOL
-					//updateTakenPool(board.get(randomMove.x, randomMove.y));
-				//}
-			//}
-			
-			//REMOVE PIECE FROM CURRENT SQUARE
-			//emulatedBoard.set(randomValidMove.piece.getX(), randomValidMove.piece.getY(), null);
-			//PLACE PIECE IN NEW SQUARE
-			//emulatedBoard.set(randomMove.x, randomMove.y, randomValidMove.piece);
-			
-			//POPULATE THE MAIN BOARD WITH MY NEW STATE
-			board.populateBoard(emulatedBoard.getStateCopy());
-			
-			//CHECK FOR PAWN
-			if(chosenMove.piece.getName() == 'Pawn'){
-				//SET PAWN HAS MOVED
-				board.get(chosenMove.move.x, chosenMove.move.y).hasMoved();
-			}
-			
 			//SWAP TURN
 			swapTurn();
-			
-			//CREATE CLICK EVENT ON AN EMPTY SQUARE - HANDLES CHECK LOGIC, WARNING-HIGHLIGHT ETC
-			//to-do - I just picked the clientX and clientY as a random place on the board - but I feel like should make one of the squares selected if theres a piece on it?
-			//however that doesn't seem to be happening?
-			let emulatedEvent = new MouseEvent('click', {
-				'view': window,
-				'bubbles': true,
-				'cancelable': true,
-				'clientX': 714,
-				'clientY': 283
-			});
-			canvas.dispatchEvent(emulatedEvent);
-			
+			//REDRAW
+			renderer.draw(board);
 		}
 		
 		//SWAP TURN WHEN STARTING GAME

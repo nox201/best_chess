@@ -1,8 +1,11 @@
 class Castle extends Piece {
+	
+	//CONSTRUCTOR
 	constructor(colour){
 		super(colour);
 	}
 	
+	//PROPERTIES
 	name = 'Castle';
 	
 	getValidMoves = function(board, x, y){

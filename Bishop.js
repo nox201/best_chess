@@ -1,8 +1,11 @@
 class Bishop extends Piece {
+	
+	//CONSTRUCTOR
 	constructor(colour){
 		super(colour);
 	}
 	
+	//PROPERTIES
 	name = 'Bishop';
 	
 	getValidMoves = function(board, x, y){

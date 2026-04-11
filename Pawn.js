@@ -1,8 +1,11 @@
 class Pawn extends Piece {
+	
+	//CONSTRUCTOR
 	constructor(colour){
 		super(colour);
 	}
 	
+	//PROPERTIES
 	name = 'Pawn';
 	firstMove = true;
 	
