@@ -40,8 +40,7 @@ class Ai {
 				//var value = minimax(depth - 1, game, !isMaximisingPlayer);
 				//NOW THE PIECE IS MOVED, CALL MINIMAX WITH ONE LESS DEPTH
 				var value = this.minimax(depth - 1, board, this.opponentsTurn);
-				//game.undo();
-				//board.undo();
+
 				if(value >= bestMove){
 					bestMove = value;
 					//bestMoveFound = newGameMove;
@@ -87,6 +86,14 @@ class Ai {
 				for(var j = 0; j < newGameMoves[i].moves.length; j++){
 					//game.ugly_move(newGameMoves[i]);
 					board.makeMove(newGameMoves[i].piece, {'x': newGameMoves[i].moves[j].x, 'y': newGameMoves[i].moves[j].y});
+					
+					//CHECK HERE IF THE MOVE LEAVES THE PLAYER IN CHECK, AND IF SO, SKIP IT
+					//this this should work, but doesnt - is it because the currentTurn, which isInCheck relys on, is on the wrong turn?
+					if(board.isInCheck){
+						board.undo();
+						continue;
+					}
+					
 					//bestMove = Math.max(bestMove, minimax(depth - 1, game, !isMaximisingPlayer));
 					bestMove = Math.max(bestMove, this.minimax(depth - 1, board, this.opponentsTurn));
 					//game.undo();
@@ -100,6 +107,13 @@ class Ai {
 				for(var j = 0; j < newGameMoves[i].moves.length; j++){
 					//game.ugly_move(newGameMoves[i]);
 					board.makeMove(newGameMoves[i].piece, {'x': newGameMoves[i].moves[j].x, 'y': newGameMoves[i].moves[j].y});
+					
+					//CHECK HERE IF THE MOVE LEAVES THE PLAYER IN CHECK, AND IF SO, SKIP IT
+					if(board.isInCheck){
+						board.undo();
+						continue;
+					}
+					
 					//bestMove = Math.max(bestMove, minimax(depth - 1, game, !isMaximisingPlayer));
 					bestMove = Math.min(bestMove, this.minimax(depth - 1, board, this.opponentsTurn));
 					//game.undo();

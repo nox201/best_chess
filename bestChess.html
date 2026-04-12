@@ -15,6 +15,10 @@
 	<script src="Ai.js"></script>
 	
 	<style>
+	
+	body{
+		font-family: "Candara";
+	}
 		
 	#background {
 		--s: 61px; /* control the size*/
@@ -337,12 +341,18 @@
 			}
 			
 			//REDRAW BOARD
-			renderer.draw(board);
+			//renderer.draw(board, makeOpponentMove);
 			
-			//this works but is async so i need a callback so that the board renders, then the move is done and then renders again
-			//however that will make the code wierd, why would renderer.draw require a function as a param to make an ai move
+			//CHECK FOR SUCCESSFUL MOVE
 			if(postClickActions.swapTurn){
-				makeOpponentMove();
+				//UPDATE BLACK CHECK CONTENT TO THINKING FACE
+				document.getElementById('blackCheckContent').innerHTML = '&#129300;';
+				//REDRAW
+				renderer.draw(board);
+				//AFTER DELAY TO ALLOW FOR RENDERING, AUTOMATICALLY MAKE OPPONENT MOVE
+				window.setTimeout(makeOpponentMove, 500);
+			}else{
+				renderer.draw(board);
 			}
 		}
 		
@@ -446,7 +456,7 @@
 			renderer.draw(board);
 		}
 		
-		function getRandomInt(max) {
+		function getRandomInt(max){
 			return Math.floor(Math.random() * max);
 		}
 		
@@ -459,29 +469,29 @@
 			makeOpponentMove();
 		});
 		
-		//rewriting this again - this will be a wrapper function that allows the passing of parameters, as this will just be called directly by button
-		//want this to be an abstract class but js doesn't support them
 		function makeOpponentMove(){
 			//LOG 
 			console.log('Start of AI move');
+			
 			//CREATE AI 
+			//The AI class could just be an abstract class, but js doesn't support them
 			let ai = new Ai(board.getStateCopy(), currentTurn);
 			//USE AI TO FIND BEST MOVE TO A CERTAIN DEPTH
 			let opponentsMove = ai.minimaxRoot(3);
 			//LOG MOVE
 			console.log(opponentsMove.pieceName + ' from x: ' + opponentsMove.pieceX + ', y: ' + opponentsMove.pieceY + ' moving to x: ' + opponentsMove.move.x + ' y: ' + opponentsMove.move.y);
-			//GET PIECE TO MOVE - due to the opponents move return containing coords for both the piece and its move, need to wangle to get the piece object
-			let bestPiece = board.get(opponentsMove.pieceX, opponentsMove.pieceY);
-			//MAKE MOVE
-			let takenPiece = board.makeMove(bestPiece, {'x': opponentsMove.move.x, 'y': opponentsMove.move.y});
-			//UPDATE TAKEN POOL IF REQUIRED
-			if(takenPiece != null){
-				updateTakenPool(takenPiece);
-			}
+			
+			//EMULATE BOARD CLICKS TO MAKE OPPONENTS MOVE - MEANS I CAN REUSE ALL THE BOARD.HANDLECLICK CHECKS AND LOGIC
+			board.handleClick(new Event('AiSelectPiece'), opponentsMove.pieceX, opponentsMove.pieceY);
+			board.handleClick(new Event('AiMovePiece'), opponentsMove.move.x, opponentsMove.move.y);
+			
 			//SWAP TURN
 			swapTurn();
 			//REDRAW
 			renderer.draw(board);
+			
+			//TURN BLACK CHECK CONTENT BACK TO KING - DONE IN THIS FUNCTION TO PREVENT HAVING TO USE A CALLBACK
+			document.getElementById('blackCheckContent').innerHTML = '\u{265A}';
 		}
 		
 		//SWAP TURN WHEN STARTING GAME
