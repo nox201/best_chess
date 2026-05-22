@@ -70,6 +70,12 @@ class Board {
 		}
 		//PLACE PIECE IN NEW SQUARE
 		this.set(move.x, move.y, piece);
+		
+		//SET PAWNS FIRST MOVE
+		if(piece.getName() == 'Pawn'){
+			piece.hasMoved();
+		}
+		
 		//STORE LAST MOVE 
 		this.addLastMove(move.x, move.y);
 		//RETURN TAKEN PIECE
@@ -116,7 +122,11 @@ class Board {
 		for(let i = 0; i < this.squares.length; i++){
 			for(let j = 0; j < this.squares[i].length; j++){
 				if(this.squares[j][i] != null){
-					state[j][i] = {'piece':this.squares[j][i].getName(), 'colour':this.squares[j][i].getColour()};
+					if(this.squares[j][i].getName() == 'Pawn'){
+						state[j][i] = {'piece':this.squares[j][i].getName(), 'colour':this.squares[j][i].getColour(), 'firstMove':this.squares[j][i].firstMove};
+					}else{
+						state[j][i] = {'piece':this.squares[j][i].getName(), 'colour':this.squares[j][i].getColour()};
+					}
 				}else{
 					state[j][i] = null;
 				}
@@ -132,12 +142,12 @@ class Board {
 	//CHECK/MATE FUNCTIONS
 	//---------
 	
-	isInCheck = function(){
+	isInCheck = function(turn){
 		//INIT
 		let checked = false;
 		let allMoves;
 		//ITERATE ALL MOVES FOR OPPONENT
-		if(currentTurn == 'white'){
+		if(turn == 'white'){
 			allMoves = this.getAllValidMoves('black');
 		}else{
 			allMoves = this.getAllValidMoves('white');
@@ -156,18 +166,18 @@ class Board {
 		return checked;
 	}
 	
-	isInCheckmate = function(){
+	isInCheckmate = function(turn){
 		let checkmate = true;
 		let allMoves;
 		//ITERATE ALL MOVES FOR CURRENT PLAYER
-		allMoves = this.getAllValidMoves(currentTurn);
+		allMoves = this.getAllValidMoves(turn);
 		//ITERATE ALL OPPONENTS MOVES
 		allMoves.forEach((piece) => {
 			piece.moves.forEach((move) => {
 				//MAKE MOVE
 				this.makeMove(piece.piece, move);
 				//CHECK IF THIS REMOVES CHECK
-				if(!this.isInCheck()){
+				if(!this.isInCheck(turn)){
 					checkmate = false;
 				}
 				//UNDO MOVE
@@ -245,21 +255,14 @@ class Board {
 		
 		//CHECK FOR HIGHLIGHTED PIECE
 		if(this.isHighlighted(x, y)){
-			
-			let pawnMoved = false;
-			//SET FLAG - MAKE MOVE REMOVES THE SELECTED PIECE, SO NEED TO STORE THIS TO UPDATE LATER
-			if(this.getSelectedPiece().getName() == 'Pawn'){
-				pawnMoved = true;
-			}
 
 			//MAKE MOVE
 			let move = {'x':x, 'y':y};
 			let takenPiece = this.makeMove(this.getSelectedPiece(), move);
 
 			//CHECK FOR CHECK
-			if(this.isInCheck()){
+			if(this.isInCheck(currentTurn)){
 				//UNDO MOVE
-				//this.undo();
 				ret.undo = true;
 				//SET CHECK WARNING
 				ret.inCheck = true;
@@ -271,10 +274,6 @@ class Board {
 				}
 				//SET SWAP TURN
 				ret.swapTurn = true;
-				//CHECK IF ITS A PAWN THATS MOVED
-				if(pawnMoved){
-					this.get(x, y).hasMoved();
-				}
 			}
 			
 			//DESELECT EVERYTHING
@@ -490,6 +489,7 @@ class Board {
 							break;
 							case 'Pawn':
 								this.squares[j][i] = new Pawn(state[j][i].colour);
+								this.squares[j][i].firstMove = state[j][i].firstMove;
 							break;
 							case 'Queen':
 								this.squares[j][i] = new Queen(state[j][i].colour);
